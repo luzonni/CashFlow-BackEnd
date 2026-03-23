@@ -11,10 +11,10 @@ import java.util.Set;
 @Data
 public class ResponseError {
 
+    public static final int UNPROCESSABLE_ENTITY_STATUS = 422;
+
     private String message;
     private Collection<FieldError> errors;
-
-    public static final int UNPROCESSABLE_ENTITY_STATUS = 422;
 
     public ResponseError(String message, Collection<FieldError> errors) {
         this.message = message;
