@@ -1,4 +1,4 @@
-package io.luzonni.mindbudget.domain.model;
+package io.luzonni.mindbudget.domain.model.user;
 
 import jakarta.persistence.*;
 import lombok.Data;

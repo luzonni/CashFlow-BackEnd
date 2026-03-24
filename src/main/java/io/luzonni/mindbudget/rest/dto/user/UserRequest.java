@@ -1,4 +1,4 @@
-package io.luzonni.mindbudget.rest.dto;
+package io.luzonni.mindbudget.rest.dto.user;
 
 import jakarta.validation.constraints.*;
 import lombok.Data;

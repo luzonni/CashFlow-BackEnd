@@ -1,4 +1,4 @@
-package io.luzonni.mindbudget.rest.dto;
+package io.luzonni.mindbudget.rest.dto.error;
 
 import jakarta.validation.ConstraintViolation;
 import jakarta.ws.rs.core.Response;

@@ -1,4 +1,4 @@
-package io.luzonni.mindbudget.rest.dto;
+package io.luzonni.mindbudget.rest.dto.error;
 
 public record FieldError(
         String field,

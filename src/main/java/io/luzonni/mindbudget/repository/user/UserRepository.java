@@ -1,6 +1,6 @@
-package io.luzonni.mindbudget.repository;
+package io.luzonni.mindbudget.repository.user;
 
-import io.luzonni.mindbudget.domain.model.User;
+import io.luzonni.mindbudget.domain.model.user.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 
@@ -18,8 +18,8 @@ public class UserRepository implements PanacheRepository<User> {
         return find("username", username).firstResultOptional();
     }
 
-    public User findById(UUID id) {
-        return find("id", id).firstResult();
+    public Optional<User> findById(UUID id) {
+        return find("id", id).firstResultOptional();
     }
 
 }

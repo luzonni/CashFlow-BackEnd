@@ -1,11 +1,11 @@
-package io.luzonni.mindbudget.rest.dto;
+package io.luzonni.mindbudget.rest.dto.auth;
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 
 @Data
-public class LoginRequest {
+public class AuthRequest {
 
     @NotEmpty
     @NotNull
