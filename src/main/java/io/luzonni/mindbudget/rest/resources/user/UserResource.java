@@ -81,12 +81,10 @@ public class UserResource {
     }
 
     @DELETE
-    @Path("{id}")
     @Transactional
-    public Response deleteUser(
-            @PathParam("id")
-            UUID userId
-    ) {
+    @RolesAllowed("user")
+    public Response deleteUser() {
+        UUID userId = UUID.fromString(jwt.getSubject());
         Optional<User> option = userRepository.findById(userId);
         if(option.isPresent()) {
             User user = option.get();
@@ -97,15 +95,12 @@ public class UserResource {
     }
 
     @PUT
-    @Path("{id}")
     @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     public Response updateUser(
-            @PathParam("id")
-            UUID userId,
             UserRequest userRequest
     ) {
-
+        UUID userId = UUID.fromString(jwt.getSubject());
         Optional<User> option = userRepository.findById(userId);
         if(option.isPresent()) {
             User user = option.get();

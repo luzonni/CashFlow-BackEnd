@@ -3,7 +3,6 @@ package io.luzonni.mindbudget.repository.category;
 import io.luzonni.mindbudget.domain.model.category.UserCategory;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
-import jakarta.validation.constraints.NotEmpty;
 
 import java.util.Optional;
 import java.util.UUID;

@@ -33,8 +33,6 @@ public class CategoryResource {
     public Response createCategory(
             CategoryRequest categoryRequest
     ) {
-        //TODO veridicar o seguinte:
-        // Ter um retorno de quantas categorias são filhas dessas e caso delete uma, todas deveram ser deletadas.
         Set<ConstraintViolation<CategoryRequest>> validate = validator.validate(categoryRequest);
         if (!validate.isEmpty()) {
             return ResponseError.createError(validate).withStatusCode(ResponseError.UNPROCESSABLE_ENTITY_STATUS);
