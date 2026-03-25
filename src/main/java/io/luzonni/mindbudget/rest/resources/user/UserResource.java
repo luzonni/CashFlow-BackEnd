@@ -14,40 +14,32 @@ import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-@Path("/users")
+@Path("/user")
 public class UserResource {
 
     private final UserRepository userRepository;
     private final Validator validator;
+    private final JsonWebToken jwt;
 
     @Inject
-    public UserResource(UserRepository userRepository, Validator validator) {
+    public UserResource(UserRepository userRepository, Validator validator, JsonWebToken jwt) {
         this.userRepository = userRepository;
         this.validator = validator;
+        this.jwt = jwt;
     }
 
     @GET
     @RolesAllowed("user")
-    public Response getUsers() {
-        List<UserResponse> users = userRepository.listAll().stream().map(UserResponse::from).toList();
-
-        return Response.ok(users).build();
-    }
-
-    @GET
-    @Path("{id}")
-    @RolesAllowed("user")
-    public Response getUser(
-            @PathParam("id")
-            UUID id
-    ) {
-        Optional<User> option = userRepository.findById(id);
+    public Response getUser() {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        Optional<User> option = userRepository.findById(userId);
         if(option.isPresent()) {
             return Response
                     .ok(UserResponse.from(option.get()))

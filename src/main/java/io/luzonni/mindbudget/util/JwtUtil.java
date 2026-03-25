@@ -8,12 +8,11 @@ import java.util.UUID;
 
 public class JwtUtil {
 
-    public static String generateToken(UUID userId, String email) {
+    public static String generateToken(UUID userId) {
         return Jwt.issuer("mindbudget")
                 .subject(userId.toString())
-                .claim("email", email)
                 .groups(Set.of("user"))
-                .expiresIn(Duration.ofHours(2))
+                .expiresIn(Duration.ofDays(7))
                 .sign();
     }
 

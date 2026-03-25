@@ -26,28 +26,19 @@ public class AuthResource {
 
     @POST
     public Response login(AuthRequest loginRequest) {
-        System.out.println(
-                ConfigProvider.getConfig().getValue("smallrye.jwt.sign.key", String.class)
-        );
         Optional<User> userOpt = userRepository.findByEmail(loginRequest.getEmail());
-
         if(userOpt.isEmpty()) {
             return Response.serverError().status(Response.Status.UNAUTHORIZED).build();
         }
-
         User user = userOpt.get();
-
         boolean valid = PasswordUtil.verify(
                 loginRequest.getPassword(),
                 user.getPasswordHash()
         );
-
         if(!valid) {
             return Response.serverError().status(Response.Status.UNAUTHORIZED).build();
         }
-
-        String token = JwtUtil.generateToken(user.getId(), user.getEmail());
-
+        String token = JwtUtil.generateToken(user.getId());
         return Response.ok(Map.of(
                 "access_token", token,
                 "type", "Bearer"

@@ -18,6 +18,10 @@ public class UserRepository implements PanacheRepository<User> {
         return find("username", username).firstResultOptional();
     }
 
+    public boolean existsByUsername(String username) {
+        return count("user.username = ?1", username) > 0;
+    }
+
     public Optional<User> findById(UUID id) {
         return find("id", id).firstResultOptional();
     }
