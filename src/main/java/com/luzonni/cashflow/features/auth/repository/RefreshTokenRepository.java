@@ -1,6 +1,7 @@
 package com.luzonni.cashflow.features.auth.repository;
 
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
+import com.luzonni.cashflow.shared.util.HashUtils;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -12,12 +13,17 @@ import java.util.UUID;
 @ApplicationScoped
 public class RefreshTokenRepository implements PanacheRepository<RefreshToken> {
 
-    public List<RefreshToken> findActiveByUserIdAndDeviceId(UUID userId, UUID deviceId) {
+    public List<RefreshToken> findActiveByUserId(UUID userId) {
         return find(
-                "user.id = ?1 and deviceId = ?2 and revoked = false",
-                userId,
-                deviceId
+                "user.id = ?1 and revoked = false",
+                userId
         ).list();
+    }
+
+    public RefreshToken findByToken(String token) {
+        String hashedToken = HashUtils.sha256(token);
+        System.out.println("hashedToken = " + hashedToken);
+        return find("tokenHash = ?1", hashedToken).firstResult();
     }
 
     @Transactional

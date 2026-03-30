@@ -2,6 +2,7 @@ package com.luzonni.cashflow.features.auth.service;
 
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
 import com.luzonni.cashflow.features.auth.dto.LoginRequest;
+import com.luzonni.cashflow.features.auth.dto.RefreshRequest;
 import com.luzonni.cashflow.features.auth.dto.TokenResponse;
 import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
 import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
@@ -41,7 +42,7 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse login(LoginRequest loginRequest, String ip, String userAgent, UUID deviceId) {
+    public TokenResponse login(LoginRequest loginRequest, String ip, String userAgent) {
         User user = userRepository
                 .findByEmail(loginRequest.getEmail())
                 .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
@@ -54,11 +55,10 @@ public class AuthService {
                 user,
                 refreshToken,
                 ip,
-                deviceId,
                 userAgent,
                 refreshTokenExpiration
         );
-        List<RefreshToken> activeTokens = repository.findActiveByUserIdAndDeviceId(user.getId(), deviceId);
+        List<RefreshToken> activeTokens = repository.findActiveByUserId(user.getId());
         if (!activeTokens.isEmpty()) {
             LocalDateTime now = LocalDateTime.now();
             for (RefreshToken token : activeTokens) {
@@ -73,7 +73,7 @@ public class AuthService {
     }
 
     @Transactional
-    public TokenResponse register(RegisterRequest request, String ip, String userAgent, UUID deviceId) {
+    public TokenResponse register(RegisterRequest request, String ip, String userAgent) {
         Optional<User> byEmail = userRepository.findByEmail(request.getEmail());
         if(byEmail.isPresent()) {
             throw new ConflictException("Email already exists");
@@ -90,7 +90,6 @@ public class AuthService {
                 user,
                 refreshToken,
                 ip,
-                deviceId,
                 userAgent,
                 refreshTokenExpiration
         );
@@ -103,4 +102,37 @@ public class AuthService {
         repository.cleanupRevokedTokens();
     }
 
+    @Transactional
+    public TokenResponse refresh(String refreshToken, String ip, String userAgent) {
+        RefreshToken tl = repository.findByToken(refreshToken);
+        if(tl == null) {
+            throw new UnauthorizedException("Invalid refresh token");
+        }
+        User user = tl.getUser();
+        String newAccessToken = TokenUtils.generateAccessToken(user.getId());
+        String newRefreshToken = TokenUtils.generateRefreshToken();
+        RefreshToken newRefreshTokenEntity = AuthMapper.toRefreshTokenEntity(
+                user,
+                newRefreshToken,
+                ip,
+                userAgent,
+                refreshTokenExpiration
+        );
+        List<RefreshToken> activeTokens = repository.findActiveByUserId(user.getId());
+        if (!activeTokens.isEmpty()) {
+            LocalDateTime now = LocalDateTime.now();
+            for (RefreshToken token : activeTokens) {
+                token.setRevoked(true);
+                token.setRevokedAt(now);
+                token.setReplacedByToken(newRefreshTokenEntity);
+                repository.persist(token);
+            }
+        }
+        repository.persist(newRefreshTokenEntity);
+        return AuthMapper.toToken(newAccessToken, newRefreshToken);
+    }
+
+    public User getUserById(UUID id) {
+        return userRepository.getUserById(id);
+    }
 }

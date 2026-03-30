@@ -15,7 +15,5 @@ public class LoginRequest {
     private String email;
     @NotEmpty
     private String password;
-    @NotNull
-    private UUID deviceId;
 
 }

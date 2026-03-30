@@ -32,8 +32,6 @@ public class RefreshToken {
     @ManyToOne()
     @JoinColumn(name = "replaced_by_token_id")
     private RefreshToken replacedByToken;
-    @Column(name = "device_id")
-    private UUID deviceId;
     @Column(name = "device_info")
     private String deviceInfo;
     @Column(name = "ip_address")

@@ -27,7 +27,5 @@ public class RegisterRequest {
     private String password;
     @NotNull(message = "Data de nascimento é obrigatória")
     private LocalDate birthday;
-    @NotNull
-    private UUID deviceId;
 
 }

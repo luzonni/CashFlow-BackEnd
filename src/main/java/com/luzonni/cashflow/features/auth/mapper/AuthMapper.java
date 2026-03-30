@@ -33,16 +33,14 @@ public class AuthMapper {
             User user,
             String refreshToken,
             String ip,
-            UUID deviceId,
             String userAgent,
             int daysLeft
     ) {
         RefreshToken entity = new RefreshToken();
-        String hashedRefreshToken = HashUtils.hash(refreshToken);
+        String hashedRefreshToken = HashUtils.sha256(refreshToken);
         entity.setTokenHash(hashedRefreshToken);
         entity.setRevoked(false);
         entity.setUser(user);
-        entity.setDeviceId(deviceId);
         entity.setDeviceInfo(userAgent);
         entity.setIpAddress(ip);
         entity.setExpiry(daysLeft);
