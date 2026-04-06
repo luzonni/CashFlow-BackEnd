@@ -1,13 +1,13 @@
 package com.luzonni.cashflow.features.auth.dto;
 
+import com.luzonni.cashflow.features.user.domain.User;
 import lombok.Data;
 
 @Data
-public class TokenResponse {
+public class AuthResponse {
 
-    public String accessToken; // 5 a 15 min
-    public String refreshToken; // 7 a 30 dias
-    public String type;
+    public boolean success;
+    public User user;
 
     /*
     Access Token = pulseira de evento
@@ -17,10 +17,5 @@ public class TokenResponse {
         você usa pra pegar outra pulseira
         é verificado com muito mais cuidado
     */
-
-
-
-
-
 
 }

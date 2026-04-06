@@ -20,9 +20,8 @@ public class RefreshTokenRepository implements PanacheRepository<RefreshToken> {
         ).list();
     }
 
-    public RefreshToken findByToken(String token) {
+    public RefreshToken findByRefreshToken(String token) {
         String hashedToken = HashUtils.sha256(token);
-        System.out.println("hashedToken = " + hashedToken);
         return find("tokenHash = ?1", hashedToken).firstResult();
     }
 

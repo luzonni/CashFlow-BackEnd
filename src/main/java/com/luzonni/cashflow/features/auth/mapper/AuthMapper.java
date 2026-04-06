@@ -2,19 +2,16 @@ package com.luzonni.cashflow.features.auth.mapper;
 
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
 import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
-import com.luzonni.cashflow.features.auth.dto.TokenResponse;
+import com.luzonni.cashflow.features.auth.dto.AuthResponse;
 import com.luzonni.cashflow.shared.util.HashUtils;
 import com.luzonni.cashflow.features.user.domain.User;
 
-import java.util.UUID;
-
 public class AuthMapper {
 
-    public static TokenResponse toToken(String accessToken, String refreshToken) {
-        TokenResponse loginResponse = new TokenResponse();
-        loginResponse.setAccessToken(accessToken);
-        loginResponse.setRefreshToken(refreshToken);
-        loginResponse.setType("Bearer");
+    public static AuthResponse toAuthResponse(User user, boolean success) {
+        AuthResponse loginResponse = new AuthResponse();
+        loginResponse.setUser(user);
+        loginResponse.setSuccess(success);
         return loginResponse;
     }
 

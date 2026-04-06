@@ -1,13 +1,10 @@
 package com.luzonni.cashflow.features.auth.rest;
 
-import com.luzonni.cashflow.features.auth.dto.RefreshRequest;
-import com.luzonni.cashflow.features.auth.dto.TokenResponse;
-import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
-import com.luzonni.cashflow.features.auth.dto.LoginRequest;
+import com.luzonni.cashflow.features.auth.dto.*;
+import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.service.AuthService;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
-import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import io.quarkus.security.UnauthorizedException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -16,10 +13,11 @@ import jakarta.ws.rs.*;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.NewCookie;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
-import java.util.Optional;
+import java.util.Map;
 import java.util.UUID;
 
 @Path("/auth")
@@ -32,7 +30,10 @@ public class AuthResource {
     private final JsonWebToken jwt;
 
     @Inject
-    public AuthResource(AuthService authService, JsonWebToken jwt) {
+    public AuthResource(
+            AuthService authService,
+            JsonWebToken jwt
+    ) {
         this.authService = authService;
         this.jwt = jwt;
     }
@@ -46,15 +47,16 @@ public class AuthResource {
     ) {
         String ip = (String) context.getProperty("ip");
         String userAgent = (String) context.getProperty("userAgent");
-        try {
-            TokenResponse login = authService.login(loginRequest, ip, userAgent);
-            return Response.ok(login).build();
-        }catch (UnauthorizedException e) {
-            return Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .entity(e.getMessage())
-                    .build();
+        User user = authService.authenticate(loginRequest);
+        if (user == null) {
+            return Response.status(Response.Status.UNAUTHORIZED).build();
         }
+        AuthCookies cookies = authService.GenerateAndPersistTokens(user, ip, userAgent);
+        return Response
+                .ok(AuthMapper.toAuthResponse(user, true))
+                .cookie(cookies.getAccessToken())
+                .cookie(cookies.getRefreshToken())
+                .build();
     }
 
     @POST
@@ -66,15 +68,14 @@ public class AuthResource {
     ) {
         String ip = (String) context.getProperty("ip");
         String userAgent = (String) context.getProperty("userAgent");
-        try {
-            TokenResponse token = authService.register(requestRegister, ip, userAgent);
-            return Response.ok(token).build();
-        }catch (ConflictException e) {
-            return Response
-                    .status(Response.Status.CONFLICT)
-                    .entity(e.getMessage())
-                    .build();
-        }
+        User user = authService.register(requestRegister);
+        AuthCookies cookies = authService.GenerateAndPersistTokens(user, ip, userAgent);
+        return Response
+                .ok(user)
+                .cookie(cookies.getAccessToken())
+                .cookie(cookies.getRefreshToken())
+                .entity(cookies.getRefreshToken())
+                .build();
     }
 
     @POST
@@ -82,26 +83,34 @@ public class AuthResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response refreshToken(
-            @Valid RefreshRequest refreshRequest
+            @Valid RefreshTokenRequest refreshRequest
     ) {
         String ip = (String) context.getProperty("ip");
         String userAgent = (String) context.getProperty("userAgent");
         String refreshToken = refreshRequest.getRefreshToken();
-        try {
-            TokenResponse login = authService.refresh(refreshToken, ip, userAgent);
-            return Response.ok(login).build();
-        }catch (UnauthorizedException e) {
-            return Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .entity(e.getMessage())
-                    .build();
-        }
+        User user = authService.refresh(refreshToken);
+        AuthCookies cookies = authService.GenerateAndPersistTokens(user, ip, userAgent);
+        return Response
+                .ok(user)
+                .cookie(cookies.getAccessToken())
+                .cookie(cookies.getRefreshToken())
+                .build();
     }
 
     @POST
     @Path("logout")
-    public Response logout() {
-        return Response.ok().build();
+    @RolesAllowed("user")
+    @Consumes(MediaType.APPLICATION_JSON)
+    public Response logout(
+            @Valid RefreshTokenRequest refreshRequest
+    ) {
+        String refreshToken = refreshRequest.getRefreshToken();
+        AuthCookies logout = authService.logout(refreshToken);
+        return Response
+                .noContent()
+                .cookie(logout.getAccessToken())
+                .cookie(logout.getRefreshToken())
+                .build();
     }
 
     @GET

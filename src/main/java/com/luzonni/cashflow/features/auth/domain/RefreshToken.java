@@ -46,9 +46,10 @@ public class RefreshToken {
         this.expiresAt = LocalDateTime.now().plusDays(days);
     }
 
-    public void revoke() {
+    public void revoke(RefreshToken newRefreshToken) {
         this.revoked = true;
         this.revokedAt = LocalDateTime.now();
+        this.replacedByToken =  newRefreshToken;
     }
 
     public void replace(RefreshToken newToken) {

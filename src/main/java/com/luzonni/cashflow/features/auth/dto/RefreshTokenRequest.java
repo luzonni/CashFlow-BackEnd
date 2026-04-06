@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotEmpty;
 import lombok.Data;
 
 @Data
-public class RefreshRequest {
+public class RefreshTokenRequest {
 
     @NotEmpty
     private String refreshToken;
