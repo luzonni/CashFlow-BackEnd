@@ -1,10 +1,7 @@
 package com.luzonni.cashflow.features.auth.service;
 
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
-import com.luzonni.cashflow.features.auth.dto.AuthCookies;
-import com.luzonni.cashflow.features.auth.dto.LoginRequest;
-import com.luzonni.cashflow.features.auth.dto.AuthResponse;
-import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
+import com.luzonni.cashflow.features.auth.dto.*;
 import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.repository.RefreshTokenRepository;
 import com.luzonni.cashflow.shared.util.CookieUtils;
@@ -17,7 +14,7 @@ import io.quarkus.security.UnauthorizedException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
-import jakarta.ws.rs.core.NewCookie;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.LocalDateTime;
@@ -32,6 +29,12 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository repository;
 
+    private final static String FAKE_HASH;
+
+    static {
+        FAKE_HASH = HashUtils.hash("Imagine uma nova história para sua vida e acredite nela.");
+    }
+
     @Inject
     public AuthService(
             UserRepository userRepository,
@@ -41,25 +44,30 @@ public class AuthService {
         this.repository = repository;
     }
 
-    public User authenticate(LoginRequest loginRequest) {
-        User user = userRepository
-                .findByEmail(loginRequest.getEmail())
-                .orElseThrow(() -> new UnauthorizedException("Invalid credentials"));
-        if(!HashUtils.verify(loginRequest.getPassword(), user.getPasswordHash())) {
-            throw new UnauthorizedException("Invalid credentials");
+    public AuthResult authenticate(LoginRequest loginRequest) {
+        Optional<User> optionalUser = userRepository.findByEmail(loginRequest.getEmail());
+        String hash = optionalUser
+                .map(User::getPasswordHash)
+                .orElse(FAKE_HASH);
+        boolean valid = HashUtils.verify(loginRequest.getPassword(), hash);
+        if(!valid || optionalUser.isEmpty()) {
+            return AuthMapper.toAuthError(Response.Status.UNAUTHORIZED, "unauthorized");
         }
-        return user;
+        User user = optionalUser.get();
+        AuthCookies cookies = generateAndPersistTokens(user);
+        return AuthMapper.toAuthResult(
+                user,
+                cookies
+        );
     }
 
     @Transactional
-    public AuthCookies GenerateAndPersistTokens(User user, String ip, String userAgent) {
+    public AuthCookies generateAndPersistTokens(User user) {
         String accessToken = TokenUtils.generateAccessToken(user.getId());
         String refreshToken = TokenUtils.generateRefreshToken();
         RefreshToken refreshTokenEntity = AuthMapper.toRefreshTokenEntity(
                 user,
                 refreshToken,
-                ip,
-                userAgent,
                 refreshTokenExpiration
         );
         List<RefreshToken> activeTokens = repository.findActiveByUserId(user.getId());
@@ -80,18 +88,39 @@ public class AuthService {
     }
 
     @Transactional
-    public User register(RegisterRequest request) {
-        Optional<User> byEmail = userRepository.findByEmail(request.getEmail());
-        if(byEmail.isPresent()) {
-            throw new ConflictException("Email already exists");
+    public AuthResult register(RegisterRequest request) {
+        User user = AuthMapper.toUserEntity(request);
+        try {
+            userRepository.persist(user);
+            AuthCookies cookies = generateAndPersistTokens(user);
+            return AuthMapper.toAuthResult(user, cookies);
+        }catch (Exception e) {
+            throw new ConflictException("Email or Username already exists");
         }
-        Optional<User> byUsername = userRepository.findByUsername(request.getUsername());
-        if(byUsername.isPresent()) {
-            throw new ConflictException("Username already exists");
+    }
+
+    public AuthResult refresh(String refreshToken) {
+        RefreshToken tl = repository.findByRefreshToken(refreshToken);
+        if(tl == null) {
+            return AuthMapper.toAuthError(Response.Status.FORBIDDEN, "refresh token not found");
         }
-        User user = AuthMapper.toEntity(request);
-        userRepository.persist(user);
-        return user;
+        if(tl.getRevoked()) {
+            return AuthMapper.toAuthError(Response.Status.FORBIDDEN, "token has expired");
+        }
+        AuthCookies cookies = generateAndPersistTokens(tl.getUser());
+        return AuthMapper.toAuthResult(null, cookies);
+    }
+
+    @Transactional
+    public AuthCookies logout(String refreshToken) {
+        RefreshToken tl = repository.findByRefreshToken(refreshToken);
+        if(tl != null) {
+            tl.revoke(null);
+            repository.persist(tl);
+        }
+        var accessCookie = CookieUtils.clearAccessTokenCookie();
+        var refreshTokenCookie = CookieUtils.clearRefreshTokenCookie();
+        return new AuthCookies(accessCookie, refreshTokenCookie);
     }
 
     @Transactional
@@ -99,32 +128,8 @@ public class AuthService {
         repository.cleanupRevokedTokens();
     }
 
-    @Transactional
-    public User refresh(String refreshToken) {
-        RefreshToken tl = repository.findByRefreshToken(refreshToken);
-        if(tl == null) {
-            throw new UnauthorizedException("Invalid refresh token");
-        }
-        if(tl.getRevoked()) {
-            throw new UnauthorizedException("Token revoked");
-        }
-        return tl.getUser();
+    public User me(UUID userId) {
+        return userRepository.getUserById(userId);
     }
 
-    @Transactional
-    public AuthCookies logout(String refreshToken) {
-        RefreshToken tl = repository.findByRefreshToken(refreshToken);
-        if(tl == null) {
-            throw new UnauthorizedException("Invalid refresh token");
-        }
-        tl.revoke(null);
-        repository.persist(tl);
-        var accessCookie = CookieUtils.clearAccessTokenCookie();
-        var refreshTokenCookie = CookieUtils.clearRefreshTokenCookie();
-        return new AuthCookies(accessCookie, refreshTokenCookie);
-    }
-
-    public User getUserById(UUID id) {
-        return userRepository.getUserById(id);
-    }
 }

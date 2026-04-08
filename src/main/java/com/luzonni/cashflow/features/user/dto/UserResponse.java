@@ -13,13 +13,11 @@ public class UserResponse {
     private LocalDate birthday;
     private LocalDate createdAt;
 
-    public static UserResponse from(User user) {
-        UserResponse userResponse = new UserResponse();
-        userResponse.setUsername(user.getUsername());
-        userResponse.setEmail(user.getEmail());
-        userResponse.setBirthday(user.getBirthday());
-        userResponse.setCreatedAt(user.getCreatedAt().toLocalDate());
-        return userResponse;
+    public UserResponse(User user) {
+        this.username = user.getUsername();
+        this.email = user.getEmail();
+        this.birthday = user.getBirthday();
+        this.createdAt = user.getCreatedAt().toLocalDate();
     }
 
 }

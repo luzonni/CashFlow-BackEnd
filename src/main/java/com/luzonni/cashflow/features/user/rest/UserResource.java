@@ -1,8 +1,8 @@
 package com.luzonni.cashflow.features.user.rest;
 
 import com.luzonni.cashflow.features.user.domain.User;
-import com.luzonni.cashflow.features.user.repository.UserRepository;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
+import com.luzonni.cashflow.features.user.repository.UserRepository;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -24,21 +24,6 @@ public class UserResource {
     public UserResource(UserRepository userRepository, Validator validator, JsonWebToken jwt) {
         this.userRepository = userRepository;
         this.jwt = jwt;
-    }
-
-    @GET
-    @RolesAllowed("user")
-    public Response getUser() {
-        UUID userId = UUID.fromString(jwt.getSubject());
-        Optional<User> option = userRepository.findById(userId);
-        if(option.isPresent()) {
-            return Response
-                    .ok(UserResponse.from(option.get()))
-                    .build();
-        }
-        return Response
-                .status(Response.Status.NOT_FOUND)
-                .build();
     }
 
     @DELETE

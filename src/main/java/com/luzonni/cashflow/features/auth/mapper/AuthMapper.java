@@ -1,21 +1,22 @@
 package com.luzonni.cashflow.features.auth.mapper;
 
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
+import com.luzonni.cashflow.features.auth.dto.AuthCookies;
+import com.luzonni.cashflow.features.auth.dto.AuthResult;
 import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
-import com.luzonni.cashflow.features.auth.dto.AuthResponse;
+import com.luzonni.cashflow.features.user.dto.UserResponse;
+import com.luzonni.cashflow.shared.dto.ErrorResponse;
 import com.luzonni.cashflow.shared.util.HashUtils;
 import com.luzonni.cashflow.features.user.domain.User;
+import jakarta.ws.rs.core.Response;
 
 public class AuthMapper {
 
-    public static AuthResponse toAuthResponse(User user, boolean success) {
-        AuthResponse loginResponse = new AuthResponse();
-        loginResponse.setUser(user);
-        loginResponse.setSuccess(success);
-        return loginResponse;
+    public static UserResponse toUserResponse(User user) {
+        return new UserResponse(user);
     }
 
-    public static User toEntity(RegisterRequest request) {
+    public static User toUserEntity(RegisterRequest request) {
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
@@ -25,12 +26,9 @@ public class AuthMapper {
         return user;
     }
 
-
     public static RefreshToken toRefreshTokenEntity(
             User user,
             String refreshToken,
-            String ip,
-            String userAgent,
             int daysLeft
     ) {
         RefreshToken entity = new RefreshToken();
@@ -38,11 +36,18 @@ public class AuthMapper {
         entity.setTokenHash(hashedRefreshToken);
         entity.setRevoked(false);
         entity.setUser(user);
-        entity.setDeviceInfo(userAgent);
-        entity.setIpAddress(ip);
         entity.setExpiry(daysLeft);
         return entity;
     }
 
+    public static AuthResult toAuthResult(User user, AuthCookies cookies) {
+        return new AuthResult(user, cookies);
+    }
+
+    public static AuthResult toAuthError(Response.Status status, String message) {
+        AuthResult authResult = new AuthResult(null, null);
+        authResult.setError(new ErrorResponse(status, message));
+        return authResult;
+    }
 
 }

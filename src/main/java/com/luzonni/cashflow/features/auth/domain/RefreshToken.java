@@ -32,10 +32,6 @@ public class RefreshToken {
     @ManyToOne()
     @JoinColumn(name = "replaced_by_token_id")
     private RefreshToken replacedByToken;
-    @Column(name = "device_info")
-    private String deviceInfo;
-    @Column(name = "ip_address")
-    private String ipAddress;
 
     @PrePersist
     public void prePersist() {
