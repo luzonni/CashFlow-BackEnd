@@ -1,5 +1,7 @@
 package com.luzonni.cashflow.shared.util;
 
+import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.user.domain.User;
 import io.smallrye.jwt.build.Jwt;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -8,6 +10,7 @@ import java.time.Duration;
 import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TokenUtils {
 
@@ -17,10 +20,15 @@ public class TokenUtils {
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
-    public static String generateAccessToken(UUID userId) {
+    public static String generateAccessToken(User user) {
+        UUID userId = user.getId();
+        Set<String> roles = user.getRoles()
+                .stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
         return Jwt.issuer("cashflow")
                 .subject(userId.toString())
-                .groups(Set.of("user"))
+                .groups(roles)
                 .expiresIn(Duration.ofMinutes(accessTokenExpiration))
                 .sign();
     }

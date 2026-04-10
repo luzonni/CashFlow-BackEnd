@@ -4,6 +4,8 @@ import com.luzonni.cashflow.features.auth.domain.RefreshToken;
 import com.luzonni.cashflow.features.auth.dto.*;
 import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.repository.RefreshTokenRepository;
+import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.authorization.repository.RoleRepository;
 import com.luzonni.cashflow.shared.util.CookieUtils;
 import com.luzonni.cashflow.shared.util.TokenUtils;
 import com.luzonni.cashflow.shared.util.HashUtils;
@@ -28,6 +30,7 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository repository;
+    private final RoleRepository roleRepository;
 
     private final static String FAKE_HASH;
 
@@ -38,10 +41,12 @@ public class AuthService {
     @Inject
     public AuthService(
             UserRepository userRepository,
-            RefreshTokenRepository repository
+            RefreshTokenRepository repository,
+            RoleRepository roleRepository
     ) {
         this.userRepository = userRepository;
         this.repository = repository;
+        this.roleRepository = roleRepository;
     }
 
     public AuthResult authenticate(LoginRequest loginRequest) {
@@ -63,7 +68,7 @@ public class AuthService {
 
     @Transactional
     public AuthCookies generateAndPersistTokens(User user) {
-        String accessToken = TokenUtils.generateAccessToken(user.getId());
+        String accessToken = TokenUtils.generateAccessToken(user);
         String refreshToken = TokenUtils.generateRefreshToken();
         RefreshToken refreshTokenEntity = AuthMapper.toRefreshTokenEntity(
                 user,
@@ -90,6 +95,8 @@ public class AuthService {
     @Transactional
     public AuthResult register(RegisterRequest request) {
         User user = AuthMapper.toUserEntity(request);
+        Role userRole = roleRepository.findByName("USER");
+        user.getRoles().add(userRole);
         try {
             userRepository.persist(user);
             AuthCookies cookies = generateAndPersistTokens(user);
@@ -113,10 +120,12 @@ public class AuthService {
 
     @Transactional
     public AuthCookies logout(String refreshToken) {
-        RefreshToken tl = repository.findByRefreshToken(refreshToken);
-        if(tl != null) {
-            tl.revoke(null);
-            repository.persist(tl);
+        if(refreshToken != null) {
+            RefreshToken tl = repository.findByRefreshToken(refreshToken);
+            if (tl != null) {
+                tl.revoke(null);
+                repository.persist(tl);
+            }
         }
         var accessCookie = CookieUtils.clearAccessTokenCookie();
         var refreshTokenCookie = CookieUtils.clearRefreshTokenCookie();

@@ -20,7 +20,7 @@ public class CookieUtils {
         return new NewCookie.Builder("refreshToken")
                 .value(token)
                 .path("/")
-                .maxAge(60 * 60 * 24 * 15) // 7dias
+                .maxAge(60 * 60 * 24 * 15)
                 .httpOnly(true)
                 .secure(SECURE)
                 .build();

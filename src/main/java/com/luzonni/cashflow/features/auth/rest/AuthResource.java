@@ -8,8 +8,6 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
-import jakarta.ws.rs.container.ContainerRequestContext;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -18,9 +16,6 @@ import java.util.UUID;
 
 @Path("/auth")
 public class AuthResource {
-
-    @Context
-    private ContainerRequestContext context;
 
     private final AuthService authService;
     private final JsonWebToken jwt;
@@ -80,9 +75,8 @@ public class AuthResource {
     @Path("refresh")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response refreshToken(
-            @Valid RefreshTokenRequest refreshRequest
+            @CookieParam("refreshToken") String refreshToken
     ) {
-        String refreshToken = refreshRequest.getRefreshToken();
         AuthResult result = authService.refresh(refreshToken);
         if(result.isFailure()) {
             return Response
@@ -99,12 +93,10 @@ public class AuthResource {
 
     @POST
     @Path("logout")
-    @RolesAllowed("user")
-    @Consumes(MediaType.APPLICATION_JSON)
     public Response logout(
-            @Valid RefreshTokenRequest refreshRequest
+            @CookieParam("refreshToken") String refreshToken
     ) {
-        AuthCookies logout = authService.logout(refreshRequest.getRefreshToken());
+        AuthCookies logout = authService.logout(refreshToken);
         return Response
                 .noContent()
                 .cookie(logout.getAccessToken())
@@ -114,7 +106,7 @@ public class AuthResource {
 
     @GET
     @Path("me")
-    @RolesAllowed("user")
+    @RolesAllowed("USER")
     public Response me() {
         UUID userId = UUID.fromString(jwt.getSubject());
         User user = authService.me(userId);

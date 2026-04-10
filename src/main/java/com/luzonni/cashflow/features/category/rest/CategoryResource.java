@@ -1,13 +1,14 @@
 package com.luzonni.cashflow.features.category.rest;
 
 import com.luzonni.cashflow.features.category.domain.Category;
+import com.luzonni.cashflow.features.category.dto.CategoryResponse;
+import com.luzonni.cashflow.features.category.service.CategoryService;
 import com.luzonni.cashflow.shared.enums.TransactionType;
-import com.luzonni.cashflow.features.category.repository.CategoryRepository;
 import com.luzonni.cashflow.features.category.dto.CategoryRequest;
+import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
-import jakarta.validation.Validator;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -15,61 +16,47 @@ import jakarta.ws.rs.core.Response;
 @Path("/category")
 public class CategoryResource {
 
-    private final CategoryRepository repository;
-    private final Validator validator;
+    private final CategoryService service;
 
     @Inject
-    public CategoryResource(CategoryRepository repository, Validator validator) {
-        this.repository = repository;
-        this.validator = validator;
+    public CategoryResource(CategoryService service) {
+        this.service = service;
     }
 
     @POST
-    @Transactional
     @Consumes(MediaType.APPLICATION_JSON)
     public Response createCategory(
-            @Valid
-            CategoryRequest request
+            @Valid CategoryRequest request
     ) {
-        if(repository.existsWithName(request.getName())) {
+        CategoryResponse newCategory = service.create(request);
+        if (newCategory == null) {
             return Response
-                    .status(Response.Status.CONFLICT)
-                    .entity("There is already a category with that name")
+                    .status(Response.Status.BAD_REQUEST)
                     .build();
         }
-        Category category = new Category();
-        category.setName(request.getName());
-        category.setType(TransactionType.valueOf(request.getType().toUpperCase()));
-        if(request.getParentId() != null) {
-            Category parent = repository.findById(request.getParentId());
-            if(parent == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .entity("Parent category not found")
-                        .build();
-            }
-            category.setParent(parent);
-        }
-        repository.persist(category);
-        return Response.status(Response.Status.CREATED).build();
+        return Response
+                .status(Response.Status.CREATED)
+                .entity(newCategory)
+                .build();
+    }
+
+    @GET
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listCategories() {
+        return Response
+                .ok(service.findAll())
+                .build();
     }
 
     @DELETE
     @Path("{id}")
-    @Transactional
     public Response deleteCategory(
             @PathParam("id")
             Long id
     ) {
-        Category category = repository.findById(id);
-        if(category != null) {
-        repository.delete(category);
-            return Response
-                    .status(Response.Status.NO_CONTENT)
-                    .build();
-        }
         return Response
-                .status(Response.Status.NOT_FOUND)
+                .status(Response.Status.OK)
+                .entity(service.delete(id))
                 .build();
     }
 
