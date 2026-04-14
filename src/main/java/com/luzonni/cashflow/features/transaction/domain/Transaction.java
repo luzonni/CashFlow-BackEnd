@@ -1,6 +1,6 @@
 package com.luzonni.cashflow.features.transaction.domain;
 
-import com.luzonni.cashflow.features.usercategory.domain.UserCategory;
+import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -19,13 +19,12 @@ public class Transaction {
     @Id
     @UuidGenerator()
     private UUID id;
-
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
     @ManyToOne
     @JoinColumn(name = "user_category_id")
-    private UserCategory userCategory;
+    private Category userCategory;
     @Column
     private BigDecimal amount;
     @Column

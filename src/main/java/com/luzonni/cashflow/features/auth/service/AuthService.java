@@ -6,6 +6,7 @@ import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.repository.RefreshTokenRepository;
 import com.luzonni.cashflow.features.authorization.domain.Role;
 import com.luzonni.cashflow.features.authorization.repository.RoleRepository;
+import com.luzonni.cashflow.features.user.dto.UserResponse;
 import com.luzonni.cashflow.shared.util.CookieUtils;
 import com.luzonni.cashflow.shared.util.TokenUtils;
 import com.luzonni.cashflow.shared.util.HashUtils;
@@ -137,8 +138,8 @@ public class AuthService {
         repository.cleanupRevokedTokens();
     }
 
-    public User me(UUID userId) {
-        return userRepository.getUserById(userId);
+    public UserResponse me(UUID userId) {
+        return new UserResponse(userRepository.getUserById(userId));
     }
 
 }

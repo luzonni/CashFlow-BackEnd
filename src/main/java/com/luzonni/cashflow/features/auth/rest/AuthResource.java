@@ -4,6 +4,7 @@ import com.luzonni.cashflow.features.auth.dto.*;
 import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.service.AuthService;
 import com.luzonni.cashflow.features.user.domain.User;
+import com.luzonni.cashflow.features.user.dto.UserResponse;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -109,9 +110,9 @@ public class AuthResource {
     @RolesAllowed("USER")
     public Response me() {
         UUID userId = UUID.fromString(jwt.getSubject());
-        User user = authService.me(userId);
+        UserResponse user = authService.me(userId);
         return Response
-                .ok(AuthMapper.toUserResponse(user))
+                .ok(user)
                 .build();
     }
 

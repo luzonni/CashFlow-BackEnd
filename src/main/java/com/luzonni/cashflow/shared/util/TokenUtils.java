@@ -7,6 +7,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.security.SecureRandom;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;
@@ -16,7 +17,7 @@ public class TokenUtils {
 
 
     @ConfigProperty(name = "auth.access-token.expiration-minutes")
-    private static int accessTokenExpiration;
+    private static long accessTokenExpiration;
 
     private static final SecureRandom secureRandom = new SecureRandom();
 
@@ -26,10 +27,12 @@ public class TokenUtils {
                 .stream()
                 .map(Role::getName)
                 .collect(Collectors.toSet());
+        long now = System.currentTimeMillis() / 1000;
         return Jwt.issuer("cashflow")
                 .subject(userId.toString())
                 .groups(roles)
-                .expiresIn(Duration.ofMinutes(accessTokenExpiration))
+                .issuedAt(now)
+                .expiresIn(now + 60L * accessTokenExpiration)
                 .sign();
     }
 

@@ -1,38 +1,29 @@
-package com.luzonni.cashflow.features.category.domain;
+package com.luzonni.cashflow.features.group_category.domain;
 
 import com.luzonni.cashflow.features.category.type.TransactionType;
-import com.luzonni.cashflow.features.group_category.domain.GroupCategory;
 import com.luzonni.cashflow.features.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
-import java.util.UUID;
 
 @Data
-@Entity()
-@Table(name = "user_categories")
-public class Category {
+@Entity
+@Table(name = "group_categories")
+public class GroupCategory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-    @ManyToOne
-    @JoinColumn(name = "group_id")
-    private GroupCategory group;
-    @Column
-    private String color;
     @Column
     private String name;
     @Column
-    @Enumerated(EnumType.STRING)
-    private TransactionType type;
+    private String description;
     @Column
     private Boolean deleted = false;
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
     @Column(name = "create_at")
     private LocalDateTime createdAt;
 

@@ -4,7 +4,7 @@ import jakarta.ws.rs.core.NewCookie;
 
 public class CookieUtils {
 
-    private static final boolean SECURE = false;
+    private static final boolean SECURE = true;
 
     public static NewCookie createAccessTokenCookie(String token) {
         return new NewCookie.Builder("accessToken")

@@ -1,63 +1,75 @@
 package com.luzonni.cashflow.features.category.rest;
 
-import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.category.dto.CategoryResponse;
-import com.luzonni.cashflow.features.category.service.CategoryService;
-import com.luzonni.cashflow.shared.enums.TransactionType;
 import com.luzonni.cashflow.features.category.dto.CategoryRequest;
+import com.luzonni.cashflow.features.category.service.UserCategoryService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.jwt.JsonWebToken;
 
-@Path("/category")
+import java.util.List;
+import java.util.UUID;
+
+//TODO mudar essa rota para ficar padrão REST
+@RolesAllowed("USER")
+@Path("/user/category")
 public class CategoryResource {
 
-    private final CategoryService service;
+    private final UserCategoryService service;
+    private final JsonWebToken token;
 
     @Inject
-    public CategoryResource(CategoryService service) {
+    public CategoryResource(
+            UserCategoryService service,
+            JsonWebToken token
+    ) {
         this.service = service;
+        this.token = token;
     }
 
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
-    public Response createCategory(
-            @Valid CategoryRequest request
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response create(
+            @Valid
+            CategoryRequest request
     ) {
-        CategoryResponse newCategory = service.create(request);
-        if (newCategory == null) {
+        UUID userId = UUID.fromString(token.getSubject());
+        CategoryResponse response = service.create(userId, request);
+        if (response == null) {
             return Response
                     .status(Response.Status.BAD_REQUEST)
                     .build();
         }
         return Response
                 .status(Response.Status.CREATED)
-                .entity(newCategory)
+                .entity(response)
                 .build();
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
-    public Response listCategories() {
+    public Response list() {
+        UUID userId = UUID.fromString(token.getSubject());
+        List<CategoryResponse> list = service.listAll(userId);
         return Response
-                .ok(service.findAll())
+                .ok(list)
                 .build();
     }
 
     @DELETE
-    @Path("{id}")
-    public Response deleteCategory(
-            @PathParam("id")
-            Long id
+    @Path("{categoryId}")
+    public Response delete(
+            @PathParam("categoryId")
+            UUID categoryId
     ) {
-        return Response
-                .status(Response.Status.OK)
-                .entity(service.delete(id))
-                .build();
+        UUID userId = UUID.fromString(token.getSubject());
+        service.delete(userId, categoryId);
+        return Response.status(Response.Status.NO_CONTENT).build();
     }
 
 }

@@ -1,9 +1,9 @@
 package com.luzonni.cashflow.features.transaction.rest;
 
-import com.luzonni.cashflow.features.usercategory.domain.UserCategory;
+import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.user.domain.User;
-import com.luzonni.cashflow.features.usercategory.repository.UserCategoryRepository;
+import com.luzonni.cashflow.features.category.repository.CategoryRepository;
 import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
 import com.luzonni.cashflow.features.transaction.dto.TransactionRequest;
@@ -25,13 +25,13 @@ public class TransactionResource {
 
     private final TransactionRepository repository;
     private final UserRepository userRepository;
-    private final UserCategoryRepository  userCategoryRepository;
+    private final CategoryRepository userCategoryRepository;
     private final JsonWebToken jwt;
 
     @Inject
     public TransactionResource(
             TransactionRepository  transactionRepository,
-            UserCategoryRepository  userCategoryRepository,
+            CategoryRepository userCategoryRepository,
             UserRepository userRepository,
             Validator validator,
             JsonWebToken jwt
@@ -61,7 +61,7 @@ public class TransactionResource {
         UUID userId = UUID.fromString(jwt.getSubject());
         UUID userCategoryId = UUID.fromString(transactionRequest.getUserCategoryId());
         Optional<User> userOpt = userRepository.findById(userId);
-        Optional<UserCategory> userCategoryOpt = userCategoryRepository.findByUUID(userCategoryId);
+        Optional<Category> userCategoryOpt = userCategoryRepository.findByUUID(userCategoryId);
         if (userOpt.isEmpty() || userCategoryOpt.isEmpty()) {
             return  Response
                     .status(Response.Status.NOT_FOUND)
@@ -109,7 +109,7 @@ public class TransactionResource {
     private static Transaction getTransaction(
             TransactionRequest transactionRequest,
             User userEntity,
-            UserCategory userCategoryEntity
+            Category userCategoryEntity
     ) {
         Transaction transactionEntity = new Transaction();
         transactionEntity.setUser(userEntity);

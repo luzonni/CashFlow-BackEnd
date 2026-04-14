@@ -1,4 +1,4 @@
-package com.luzonni.cashflow.shared.enums;
+package com.luzonni.cashflow.features.category.type;
 
 public enum TransactionType {
     INCOME,
