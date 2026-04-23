@@ -35,4 +35,5 @@ public class GroupCategoryRepository implements PanacheRepository<GroupCategory>
         delete(category);
         return list;
     }
+
 }

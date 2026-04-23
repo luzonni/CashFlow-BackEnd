@@ -2,7 +2,8 @@ package com.luzonni.cashflow.features.category.rest;
 
 import com.luzonni.cashflow.features.category.dto.CategoryResponse;
 import com.luzonni.cashflow.features.category.dto.CategoryRequest;
-import com.luzonni.cashflow.features.category.service.UserCategoryService;
+import com.luzonni.cashflow.features.category.service.CategoryService;
+import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -14,17 +15,16 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 import java.util.List;
 import java.util.UUID;
 
-//TODO mudar essa rota para ficar padrão REST
+@Path("/category")
 @RolesAllowed("USER")
-@Path("/user/category")
 public class CategoryResource {
 
-    private final UserCategoryService service;
+    private final CategoryService service;
     private final JsonWebToken token;
 
     @Inject
     public CategoryResource(
-            UserCategoryService service,
+            CategoryService service,
             JsonWebToken token
     ) {
         this.service = service;
@@ -38,17 +38,24 @@ public class CategoryResource {
             @Valid
             CategoryRequest request
     ) {
-        UUID userId = UUID.fromString(token.getSubject());
-        CategoryResponse response = service.create(userId, request);
-        if (response == null) {
+        try {
+            UUID userId = UUID.fromString(token.getSubject());
+            CategoryResponse response = service.create(userId, request);
+            if (response == null) {
+                return Response
+                        .status(Response.Status.BAD_REQUEST)
+                        .build();
+            }
             return Response
-                    .status(Response.Status.BAD_REQUEST)
+                    .status(Response.Status.CREATED)
+                    .entity(response)
+                    .build();
+        } catch (ConflictException e) {
+            return Response
+                    .status(Response.Status.CONFLICT)
                     .build();
         }
-        return Response
-                .status(Response.Status.CREATED)
-                .entity(response)
-                .build();
+
     }
 
     @GET

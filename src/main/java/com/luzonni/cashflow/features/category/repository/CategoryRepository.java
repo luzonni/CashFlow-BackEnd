@@ -24,4 +24,8 @@ public class CategoryRepository implements PanacheRepository<Category> {
     public List<Category> listAllPerUser(User user) {
         return find("userId = ?1", user.getId()).list();
     }
+
+    public List<Category> findByGroupId(Long id) {
+        return find("group.id", id).list();
+    }
 }

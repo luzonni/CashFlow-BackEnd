@@ -39,11 +39,11 @@ CREATE TABLE categories (
     color varchar(7) not null,
     name VARCHAR(50) NOT NULL,
     type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
-    group_id UUID not null references group_categories(id) on delete restrict,
+    group_id serial not null references group_categories(id) on delete restrict,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     deleted boolean not null default false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    UNIQUE(user_id, name)
+    create_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(user_id, group_id, name)
 );
 
 

@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @Data
 @Entity()
-@Table(name = "user_categories")
+@Table(name = "categories")
 public class Category {
 
     @Id
@@ -39,6 +39,10 @@ public class Category {
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
+    }
+
+    public boolean active() {
+        return this.deleted == false;
     }
 
 }

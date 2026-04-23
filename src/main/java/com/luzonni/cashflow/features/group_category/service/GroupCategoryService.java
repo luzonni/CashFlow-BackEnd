@@ -14,6 +14,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.validation.ConstraintViolationException;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,12 +22,12 @@ import java.util.UUID;
 public class GroupCategoryService {
 
     private final GroupCategoryRepository repository;
-    private final CategoryRepository  categoryRepository;
+    private final CategoryRepository categoryRepository;
     private final UserRepository userRepository;
 
     public GroupCategoryService(
             GroupCategoryRepository repository,
-            CategoryRepository  categoryRepository,
+            CategoryRepository categoryRepository,
             UserRepository userRepository
     ) {
         this.repository = repository;
@@ -35,18 +36,22 @@ public class GroupCategoryService {
     }
 
     public List<GroupCategoryResponse> findAll() {
-        return repository.listAll().stream().map((group) -> {
-            GroupCategoryResponse response = new GroupCategoryResponse(group);
-            List<CategoryResponse> categories = categoryRepository
-                    .find("group.id", group.getId())
-                    .stream()
-                    .map(CategoryResponse::new)
-                    .toList();
-            if(!categories.isEmpty()) {
-                response.setCategories(categories);
-            }
-            return response;
-        }).toList();
+        return repository
+                .listAll()
+                .stream()
+                .filter(GroupCategory::active)
+                .map((group) -> {
+                    GroupCategoryResponse response = new GroupCategoryResponse(group);
+                    List<CategoryResponse> categories = categoryRepository
+                            .find("group.id", group.getId())
+                            .stream()
+                            .map(CategoryResponse::new)
+                            .toList();
+                    if (!categories.isEmpty()) {
+                        response.setCategories(categories);
+                    }
+                    return response;
+                }).toList();
     }
 
     @Transactional
@@ -58,7 +63,7 @@ public class GroupCategoryService {
         group.setDescription(request.getDescription());
         try {
             repository.persist(group);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new ConflictException(e.getMessage());
         }
         return new GroupCategoryResponse(group);
@@ -66,7 +71,22 @@ public class GroupCategoryService {
 
     @Transactional
     public void delete(Long id) {
-        //TODO se existir alguma referencia aqui, não se pode deletar, apenas assinar como deleted = true;
+        List<Category> byGroupId = categoryRepository.findByGroupId(id);
+        for (Category category : byGroupId) {
+            category.setDeleted(true);
+            /*
+                TODO
+                Na verdade seria legal usar o metodo do service de categoria, onde, caso a categoria esteja sendo
+                usada, ela é apenas marcada como deletada, e caso não tenha nada referenciando ela, ela é realmente
+                apagada do banco.
+                e caso todas as categorias do grupo tenham sido deletadas, seria interessante deletar o grupo tambem
+                ao inves de tambem marca-lo como deletado!
+             */
+            categoryRepository.persist(category); // persistindo alteração do deleted!
+        }
+        GroupCategory group = repository.findById(id);
+        group.setDeleted(true);
+        repository.persist(group);
     }
 
     @Transactional
@@ -75,7 +95,14 @@ public class GroupCategoryService {
         group.setName(request.getName());
         group.setDescription(request.getDescription());
         repository.persist(group);
-        return new GroupCategoryResponse(group);
+        GroupCategoryResponse response = new GroupCategoryResponse(group);
+        response.setCategories(categoryRepository
+                .findByGroupId(id)
+                .stream()
+                .map(CategoryResponse::new)
+                .toList()
+        );
+        return response;
     }
 
 }

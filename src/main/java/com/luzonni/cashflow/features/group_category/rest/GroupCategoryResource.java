@@ -37,6 +37,11 @@ public class GroupCategoryResource {
             @Valid GroupCategoryRequest request
     ) {
         UUID userId = UUID.fromString(token.getSubject());
+        /*
+            TODO
+            existe um problema aqui, caso a categoria tenha sido deletada e o usuario crie uma nova com o mesmo nome,
+            a categoria deve ser ativa novamente! Não criar outra!
+         */
         try {
             GroupCategoryResponse newCategory = service.create(request, userId);
             if (newCategory == null) {

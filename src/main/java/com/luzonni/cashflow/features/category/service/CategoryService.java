@@ -13,13 +13,12 @@ import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
-public class UserCategoryService {
+public class CategoryService {
 
 
     private final CategoryRepository repository;
@@ -27,7 +26,7 @@ public class UserCategoryService {
     private final GroupCategoryRepository categoryRepository;
     private final TransactionRepository transactionRepository;
 
-    public UserCategoryService(
+    public CategoryService(
             CategoryRepository repository,
             UserRepository userRepository,
             GroupCategoryRepository categoryRepository,
@@ -45,7 +44,11 @@ public class UserCategoryService {
             return List.of();
         }
         User user = userOptional.get();
-        List<Category> userCategories = repository.listAllPerUser(user);
+        List<Category> userCategories = repository
+                .listAllPerUser(user)
+                .stream()
+                .filter(Category::active)
+                .toList();
         return userCategories.stream().map(CategoryResponse::new).toList();
     }
 
@@ -53,34 +56,35 @@ public class UserCategoryService {
     public CategoryResponse create(
             UUID userId,
             CategoryRequest request
-    ) {
+    ) throws ConflictException {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
             return null;
         }
         User user = optionalUser.get();
-        Category userCategory = new Category();
-        userCategory.setUser(user);
-        userCategory.setName(request.getName());
-        GroupCategory category = categoryRepository.findById(request.getBaseCategoryId());
-        userCategory.setGroup(category);
-        repository.persist(userCategory);
-        return new CategoryResponse(userCategory);
+        Category category = new Category();
+        category.setUser(user);
+        category.setColor(request.getColor());
+        category.setName(request.getName());
+        category.setType(request.getType());
+        GroupCategory group = categoryRepository.findById(request.getGroupId());
+        category.setGroup(group);
+        try {
+            repository.persist(category);
+        }catch (Exception e) {
+            throw new ConflictException(e.getMessage());
+        }
+        return new CategoryResponse(category);
     }
 
     @Transactional
     public void delete(UUID userId, UUID categoryId) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-        if (optionalUser.isEmpty()) {
-            return;
-        }
-        User user = optionalUser.get();
         Optional<Category> optional = repository.findByUUID(categoryId);
         if (optional.isEmpty()) {
             return;
         }
         Category userCategory = optional.get();
-        if (userCategory.getUser().getId().equals(user.getId())) {
+        if (userCategory.getUser().getId().equals(userId)) {
             boolean isUsed = transactionRepository.existsByUserCategoryId(categoryId);
             if (isUsed) {
                 userCategory.setDeleted(true);
