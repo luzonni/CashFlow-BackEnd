@@ -24,7 +24,7 @@ public class Transaction {
     private User user;
     @ManyToOne
     @JoinColumn(name = "user_category_id")
-    private Category userCategory;
+    private Category category;
     @Column
     private BigDecimal amount;
     @Column

@@ -14,8 +14,8 @@ public class TransactionRepository implements PanacheRepository<Transaction> {
         return find("id = ?1", id).firstResultOptional();
     }
 
-    public boolean existsByUserCategoryId(UUID categoryId) {
-        return find("categoryId = ?1", categoryId).firstResultOptional().isPresent();
+    public boolean existsByCategoryId(Long categoryId) {
+        return find("category.id = ?1", categoryId).firstResultOptional().isPresent();
     }
 
     //TODO criar listagem de transações por usuario

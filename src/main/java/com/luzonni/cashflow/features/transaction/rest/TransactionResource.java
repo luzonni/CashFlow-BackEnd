@@ -113,7 +113,7 @@ public class TransactionResource {
     ) {
         Transaction transactionEntity = new Transaction();
         transactionEntity.setUser(userEntity);
-        transactionEntity.setUserCategory(userCategoryEntity);
+        transactionEntity.setCategory(userCategoryEntity);
         transactionEntity.setAmount(transactionRequest.getAmount());
         transactionEntity.setDescription(transactionRequest.getDescription());
         transactionEntity.setTransactionDate(transactionRequest.getTransactionDate());

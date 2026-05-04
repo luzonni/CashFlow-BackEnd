@@ -38,24 +38,29 @@ public class CategoryResource {
             @Valid
             CategoryRequest request
     ) {
-        try {
-            UUID userId = UUID.fromString(token.getSubject());
-            CategoryResponse response = service.create(userId, request);
-            if (response == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .build();
-            }
-            return Response
-                    .status(Response.Status.CREATED)
-                    .entity(response)
-                    .build();
-        } catch (ConflictException e) {
-            return Response
-                    .status(Response.Status.CONFLICT)
-                    .build();
-        }
+        UUID userId = UUID.fromString(token.getSubject());
+        CategoryResponse response = service.create(userId, request);
+        return Response
+                .status(Response.Status.CREATED)
+                .entity(response)
+                .build();
+    }
 
+    @PUT
+    @Path("{categoryId}")
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response update(
+            @PathParam("categoryId")
+            Long categoryId,
+            @Valid
+            CategoryRequest request
+    ) {
+        CategoryResponse response = service.update(categoryId, request);
+        return Response
+                .status(Response.Status.OK)
+                .entity(response)
+                .build();
     }
 
     @GET
@@ -72,8 +77,9 @@ public class CategoryResource {
     @Path("{categoryId}")
     public Response delete(
             @PathParam("categoryId")
-            UUID categoryId
+            Long categoryId
     ) {
+        System.out.println("Entrando em DELETE");
         UUID userId = UUID.fromString(token.getSubject());
         service.delete(userId, categoryId);
         return Response.status(Response.Status.NO_CONTENT).build();

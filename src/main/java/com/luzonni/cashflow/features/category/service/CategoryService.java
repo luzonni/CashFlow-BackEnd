@@ -78,18 +78,27 @@ public class CategoryService {
     }
 
     @Transactional
-    public void delete(UUID userId, UUID categoryId) {
-        Optional<Category> optional = repository.findByUUID(categoryId);
-        if (optional.isEmpty()) {
+    public CategoryResponse update(Long categoryId, CategoryRequest request) throws ConflictException {
+        Category category = repository.findById(categoryId);
+        category.setName(request.getName());
+        category.setColor(request.getColor());
+        category.setType(request.getType());
+        repository.persist(category);
+        return new CategoryResponse(category);
+    }
+
+    @Transactional
+    public void delete(UUID userId, Long categoryId) {
+        Category category = repository.findById(categoryId);
+        if (category == null) {
             return;
         }
-        Category userCategory = optional.get();
-        if (userCategory.getUser().getId().equals(userId)) {
-            boolean isUsed = transactionRepository.existsByUserCategoryId(categoryId);
+        if (category.getUser().getId().equals(userId)) {
+            boolean isUsed = transactionRepository.existsByCategoryId(categoryId);
             if (isUsed) {
-                userCategory.setDeleted(true);
+                category.setDeleted(true);
             } else {
-                repository.delete(userCategory);
+                repository.delete(category);
             }
         }
     }
