@@ -41,8 +41,4 @@ public class Category {
         this.createdAt = LocalDateTime.now();
     }
 
-    public boolean active() {
-        return this.deleted == false;
-    }
-
 }

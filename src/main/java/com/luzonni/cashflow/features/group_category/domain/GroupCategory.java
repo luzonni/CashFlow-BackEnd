@@ -32,8 +32,4 @@ public class GroupCategory {
         this.createdAt = LocalDateTime.now();
     }
 
-    public boolean active() {
-        return this.deleted == false;
-    }
-
 }

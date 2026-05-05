@@ -37,13 +37,12 @@ public class GroupCategoryService {
 
     public List<GroupCategoryResponse> findAll() {
         return repository
-                .listAll()
+                .find("deleted = false order by createdAt desc")
                 .stream()
-                .filter(GroupCategory::active)
                 .map((group) -> {
                     GroupCategoryResponse response = new GroupCategoryResponse(group);
                     List<CategoryResponse> categories = categoryRepository
-                            .find("group.id", group.getId())
+                            .find("group.id = ?1 and deleted = false order by createdAt asc", group.getId())
                             .stream()
                             .map(CategoryResponse::new)
                             .toList();
@@ -56,8 +55,15 @@ public class GroupCategoryService {
 
     @Transactional
     public GroupCategoryResponse create(GroupCategoryRequest request, UUID userId) throws ConflictException {
-        GroupCategory group = new GroupCategory();
         User user = userRepository.getUserById(userId);
+        GroupCategory group = repository.find("name = ?1 and user = ?2", request.getName(), user).firstResult();
+        if (group.getDeleted()) {
+            group.setDeleted(false);
+            group.setDescription(request.getDescription());
+            repository.persist(group);
+            return new GroupCategoryResponse(group);
+        }
+        group = new GroupCategory();
         group.setUser(user);
         group.setName(request.getName());
         group.setDescription(request.getDescription());

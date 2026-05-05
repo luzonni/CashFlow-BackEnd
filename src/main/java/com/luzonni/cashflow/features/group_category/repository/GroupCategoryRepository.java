@@ -1,6 +1,7 @@
 package com.luzonni.cashflow.features.group_category.repository;
 
 import com.luzonni.cashflow.features.group_category.domain.GroupCategory;
+import com.luzonni.cashflow.features.user.domain.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.validation.constraints.NotNull;
@@ -10,14 +11,6 @@ import java.util.List;
 
 @ApplicationScoped
 public class GroupCategoryRepository implements PanacheRepository<GroupCategory> {
-
-
-    public boolean existsWithName(
-            @NotNull
-            String name
-    ) {
-        return count("name = ?1", name) >= 1;
-    }
 
     public List<Long> deleteCascade(Long id) {
         List<Long> list = new ArrayList<>();

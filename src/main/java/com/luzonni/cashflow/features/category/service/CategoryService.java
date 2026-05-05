@@ -20,22 +20,21 @@ import java.util.UUID;
 @ApplicationScoped
 public class CategoryService {
 
-
     private final CategoryRepository repository;
     private final UserRepository userRepository;
-    private final GroupCategoryRepository categoryRepository;
+    private final GroupCategoryRepository groupRepository;
     private final TransactionRepository transactionRepository;
 
     public CategoryService(
             CategoryRepository repository,
             UserRepository userRepository,
-            GroupCategoryRepository categoryRepository,
+            GroupCategoryRepository groupRepository,
             TransactionRepository transactionRepository
     ) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.transactionRepository = transactionRepository;
-        this.categoryRepository = categoryRepository;
+        this.groupRepository = groupRepository;
     }
 
     public List<CategoryResponse> listAll(UUID userId) throws ConflictException {
@@ -47,9 +46,11 @@ public class CategoryService {
         List<Category> userCategories = repository
                 .listAllPerUser(user)
                 .stream()
-                .filter(Category::active)
                 .toList();
-        return userCategories.stream().map(CategoryResponse::new).toList();
+        return userCategories
+                .stream()
+                .map(CategoryResponse::new)
+                .toList();
     }
 
     @Transactional
@@ -59,19 +60,27 @@ public class CategoryService {
     ) throws ConflictException {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
-            return null;
+            throw new ConflictException("User not found");
         }
         User user = optionalUser.get();
-        Category category = new Category();
+        Category category = repository.find("name = ?1 and user = ?2", request.getName(), user).firstResult();
+        if (category.getDeleted()) {
+            category.setDeleted(false);
+            category.setColor(request.getColor());
+            category.setType(request.getType());
+            repository.persist(category);
+            return new CategoryResponse(category);
+        }
+        category = new Category();
         category.setUser(user);
         category.setColor(request.getColor());
         category.setName(request.getName());
         category.setType(request.getType());
-        GroupCategory group = categoryRepository.findById(request.getGroupId());
+        GroupCategory group = groupRepository.findById(request.getGroupId());
         category.setGroup(group);
         try {
             repository.persist(category);
-        }catch (Exception e) {
+        } catch (Exception e) {
             throw new ConflictException(e.getMessage());
         }
         return new CategoryResponse(category);

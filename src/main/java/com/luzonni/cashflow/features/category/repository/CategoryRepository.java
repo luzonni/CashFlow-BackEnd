@@ -22,7 +22,7 @@ public class CategoryRepository implements PanacheRepository<Category> {
     }
 
     public List<Category> listAllPerUser(User user) {
-        return find("userId = ?1", user.getId()).list();
+        return find("userId = ?1 and deleted = false order by createdAt", user.getId()).list();
     }
 
     public List<Category> findByGroupId(Long id) {

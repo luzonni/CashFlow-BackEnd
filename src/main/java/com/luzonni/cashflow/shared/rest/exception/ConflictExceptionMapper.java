@@ -7,8 +7,7 @@ import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 @Provider
-public class ConflictExceptionMapper
-        implements ExceptionMapper<ConflictException> {
+public class ConflictExceptionMapper implements ExceptionMapper<ConflictException> {
 
     @Override
     public Response toResponse(
