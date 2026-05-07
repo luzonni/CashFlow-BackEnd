@@ -12,11 +12,6 @@ import java.util.UUID;
 @ApplicationScoped
 public class CategoryRepository implements PanacheRepository<Category> {
 
-
-    public boolean existsByName(String name) {
-        return count("name = ?1", name) >= 1;
-    }
-
     public Optional<Category> findByUUID(UUID id) {
         return find("id", id).firstResultOptional();
     }
@@ -24,8 +19,9 @@ public class CategoryRepository implements PanacheRepository<Category> {
     public List<Category> listAllPerUser(User user) {
         return find("userId = ?1 and deleted = false order by createdAt", user.getId()).list();
     }
-
+    
     public List<Category> findByGroupId(Long id) {
         return find("group.id", id).list();
     }
+
 }

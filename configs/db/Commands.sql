@@ -35,8 +35,8 @@ CREATE TABLE group_categories (
 -- Categorias do Usuário
 -- =========================
 CREATE TABLE categories (
-    id serial PRIMARY KEY,
-    color varchar(7) not null,
+    id SERIAL PRIMARY KEY,
+    color VARCHAR(7) not null,
     name VARCHAR(50) NOT NULL,
     type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     group_id serial not null references group_categories(id) on delete restrict,
@@ -53,11 +53,25 @@ CREATE TABLE categories (
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
+    payment_method INT references payment_method(id) on delete restrict,
     description TEXT,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
     transaction_date DATE NOT NULL,
     state VARCHAR(10) not null check (state in ('PENDING', 'CONFIRM', 'CANCELLED')),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- Payment Method
+-- =========================
+
+create table payment_method (
+	id SERIAL primary key,
+	user_id UUID not null references users(id) on delete cascade,
+	color VARCHAR(7) not null,
+	name VARCHAR(25) not null,
+	deleted boolean not null default false,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -94,7 +108,7 @@ create table recurrence_execution_records (
 -- Refresh Token
 -- =========================
 CREATE TABLE refresh_tokens (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY key default uuid_generate_v4(), 
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     token_hash TEXT NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,

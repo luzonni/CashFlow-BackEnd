@@ -2,7 +2,6 @@ package com.luzonni.cashflow.features.category.service;
 
 import com.luzonni.cashflow.features.group_category.domain.GroupCategory;
 import com.luzonni.cashflow.features.group_category.repository.GroupCategoryRepository;
-import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
 import com.luzonni.cashflow.features.category.domain.Category;
@@ -12,6 +11,7 @@ import com.luzonni.cashflow.features.category.repository.CategoryRepository;
 import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 
 import java.util.List;
 import java.util.Optional;
@@ -23,17 +23,14 @@ public class CategoryService {
     private final CategoryRepository repository;
     private final UserRepository userRepository;
     private final GroupCategoryRepository groupRepository;
-    private final TransactionRepository transactionRepository;
 
     public CategoryService(
             CategoryRepository repository,
             UserRepository userRepository,
-            GroupCategoryRepository groupRepository,
-            TransactionRepository transactionRepository
+            GroupCategoryRepository groupRepository
     ) {
         this.repository = repository;
         this.userRepository = userRepository;
-        this.transactionRepository = transactionRepository;
         this.groupRepository = groupRepository;
     }
 
@@ -63,8 +60,12 @@ public class CategoryService {
             throw new ConflictException("User not found");
         }
         User user = optionalUser.get();
-        Category category = repository.find("name = ?1 and user = ?2", request.getName(), user).firstResult();
-        if (category.getDeleted()) {
+        Category category = repository.find(
+                "name = ?1 and user = ?2 and deleted = true",
+                request.getName(),
+                user
+        ).firstResult();
+        if (category != null) {
             category.setDeleted(false);
             category.setColor(request.getColor());
             category.setType(request.getType());
@@ -87,8 +88,15 @@ public class CategoryService {
     }
 
     @Transactional
-    public CategoryResponse update(Long categoryId, CategoryRequest request) throws ConflictException {
-        Category category = repository.findById(categoryId);
+    public CategoryResponse update(
+            UUID userId,
+            Long categoryId,
+            CategoryRequest request
+    ) throws ConflictException {
+        Category category = repository.find(
+                "id = ?1 and user.id = ?2 and deleted = false",
+                categoryId, userId
+        ).firstResult();
         category.setName(request.getName());
         category.setColor(request.getColor());
         category.setType(request.getType());
@@ -98,18 +106,16 @@ public class CategoryService {
 
     @Transactional
     public void delete(UUID userId, Long categoryId) {
-        Category category = repository.findById(categoryId);
+        Category category = repository.find(
+                "id = ?1 and user.id = ?2 and deleted = false",
+                categoryId,
+                userId
+        ).firstResult();
         if (category == null) {
-            return;
+            throw new NotFoundException("Category not found");
         }
-        if (category.getUser().getId().equals(userId)) {
-            boolean isUsed = transactionRepository.existsByCategoryId(categoryId);
-            if (isUsed) {
-                category.setDeleted(true);
-            } else {
-                repository.delete(category);
-            }
-        }
+        category.setDeleted(true);
+        repository.persist(category);
     }
 
 }

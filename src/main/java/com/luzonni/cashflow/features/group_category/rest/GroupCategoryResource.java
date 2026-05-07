@@ -53,21 +53,11 @@ public class GroupCategoryResource {
             @PathParam("id") Long id,
             @Valid GroupCategoryRequest request
     ) {
-        try {
-            GroupCategoryResponse updatedCategory = service.update(id, request);
-            if (updatedCategory == null) {
-                return Response
-                        .status(Response.Status.BAD_REQUEST)
-                        .build();
-            }
-            return Response
-                    .ok(updatedCategory)
-                    .build();
-        }catch (ConflictException e) {
-            return Response
-                    .status(Response.Status.CONFLICT)
-                    .build();
-        }
+        UUID userId = UUID.fromString(token.getSubject());
+        GroupCategoryResponse updatedCategory = service.update(userId, id, request);
+        return Response
+                .ok(updatedCategory)
+                .build();
     }
 
     @GET
@@ -86,7 +76,8 @@ public class GroupCategoryResource {
             @PathParam("id")
             Long id
     ) {
-        service.delete(id);
+        UUID userId = UUID.fromString(token.getSubject());
+        service.delete(userId, id);
         return Response
                 .status(Response.Status.NO_CONTENT)
                 .build();

@@ -12,9 +12,8 @@ import com.luzonni.cashflow.features.user.repository.UserRepository;
 import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
-import jakarta.validation.ConstraintViolationException;
+import jakarta.ws.rs.NotFoundException;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -54,9 +53,15 @@ public class GroupCategoryService {
     }
 
     @Transactional
-    public GroupCategoryResponse create(GroupCategoryRequest request, UUID userId) throws ConflictException {
+    public GroupCategoryResponse create(
+            GroupCategoryRequest request,
+            UUID userId
+    ) throws ConflictException {
         User user = userRepository.getUserById(userId);
-        GroupCategory group = repository.find("name = ?1 and user = ?2", request.getName(), user).firstResult();
+        GroupCategory group = repository.find(
+                "name = ?1 and user = ?2",
+                request.getName(), user
+        ).firstResult();
         if (group.getDeleted()) {
             group.setDeleted(false);
             group.setDescription(request.getDescription());
@@ -76,28 +81,35 @@ public class GroupCategoryService {
     }
 
     @Transactional
-    public void delete(Long id) {
+    public void delete(UUID userId, Long id) {
+        GroupCategory group = repository.find(
+                "id = ?1 and user.id = ?2 and deleted = false",
+                id, userId
+        ).firstResult();
+        if(group == null) {
+            throw new NotFoundException("Category not found");
+        }
         List<Category> byGroupId = categoryRepository.findByGroupId(id);
         for (Category category : byGroupId) {
             category.setDeleted(true);
-            /*
-                TODO
-                Na verdade seria legal usar o metodo do service de categoria, onde, caso a categoria esteja sendo
-                usada, ela é apenas marcada como deletada, e caso não tenha nada referenciando ela, ela é realmente
-                apagada do banco.
-                e caso todas as categorias do grupo tenham sido deletadas, seria interessante deletar o grupo tambem
-                ao inves de tambem marca-lo como deletado!
-             */
-            categoryRepository.persist(category); // persistindo alteração do deleted!
+            categoryRepository.persist(category);
         }
-        GroupCategory group = repository.findById(id);
         group.setDeleted(true);
         repository.persist(group);
     }
 
     @Transactional
-    public GroupCategoryResponse update(Long id, GroupCategoryRequest request) {
-        GroupCategory group = repository.findById(id);
+    public GroupCategoryResponse update(
+            UUID userId,
+            Long id,
+            GroupCategoryRequest request
+    ) throws NotFoundException, ConflictException {
+        GroupCategory group = repository.find(
+                "id = ?1 and user.id = ?2 and deleted = false",
+                id, userId
+        ).firstResult();
+        if(group == null)
+            throw new NotFoundException();
         group.setName(request.getName());
         group.setDescription(request.getDescription());
         repository.persist(group);

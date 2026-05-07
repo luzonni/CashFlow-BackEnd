@@ -7,8 +7,8 @@ import jakarta.enterprise.context.ApplicationScoped;
 @ApplicationScoped
 public class RoleRepository implements PanacheRepository<Role> {
 
-
     public Role findByName(String name) {
         return find("name", name).firstResult();
     }
+
 }

@@ -56,7 +56,8 @@ public class CategoryResource {
             @Valid
             CategoryRequest request
     ) {
-        CategoryResponse response = service.update(categoryId, request);
+        UUID userId = UUID.fromString(token.getSubject());
+        CategoryResponse response = service.update(userId, categoryId, request);
         return Response
                 .status(Response.Status.OK)
                 .entity(response)
@@ -79,7 +80,6 @@ public class CategoryResource {
             @PathParam("categoryId")
             Long categoryId
     ) {
-        System.out.println("Entrando em DELETE");
         UUID userId = UUID.fromString(token.getSubject());
         service.delete(userId, categoryId);
         return Response.status(Response.Status.NO_CONTENT).build();
