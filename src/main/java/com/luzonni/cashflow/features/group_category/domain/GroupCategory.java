@@ -1,6 +1,5 @@
 package com.luzonni.cashflow.features.group_category.domain;
 
-import com.luzonni.cashflow.features.category.type.TransactionType;
 import com.luzonni.cashflow.features.user.domain.User;
 import jakarta.persistence.*;
 import lombok.Data;

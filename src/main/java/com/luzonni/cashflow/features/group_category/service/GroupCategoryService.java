@@ -59,10 +59,10 @@ public class GroupCategoryService {
     ) throws ConflictException {
         User user = userRepository.getUserById(userId);
         GroupCategory group = repository.find(
-                "name = ?1 and user = ?2",
+                "name = ?1 and user = ?2 and deleted = true",
                 request.getName(), user
         ).firstResult();
-        if (group.getDeleted()) {
+        if (group != null) {
             group.setDeleted(false);
             group.setDescription(request.getDescription());
             repository.persist(group);

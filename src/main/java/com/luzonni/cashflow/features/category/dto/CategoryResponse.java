@@ -1,7 +1,6 @@
 package com.luzonni.cashflow.features.category.dto;
 
-import com.luzonni.cashflow.features.category.type.TransactionType;
-import com.luzonni.cashflow.features.group_category.domain.GroupCategory;
+import com.luzonni.cashflow.shared.type.TransactionType;
 import com.luzonni.cashflow.features.category.domain.Category;
 import lombok.Data;
 
@@ -13,7 +12,6 @@ public class CategoryResponse {
     private Long id;
     private String color;
     private String name;
-    private TransactionType type;
     private Boolean active;
     private LocalDateTime createdAt;
 
@@ -21,7 +19,6 @@ public class CategoryResponse {
         this.id = userCategory.getId();
         this.color = userCategory.getColor();
         this.name = userCategory.getName();
-        this.type = userCategory.getType();
         this.active = !userCategory.getDeleted();
         this.createdAt = userCategory.getCreatedAt();
     }

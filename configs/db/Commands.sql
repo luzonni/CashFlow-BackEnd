@@ -38,7 +38,6 @@ CREATE TABLE categories (
     id SERIAL PRIMARY KEY,
     color VARCHAR(7) not null,
     name VARCHAR(50) NOT NULL,
-    type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     group_id serial not null references group_categories(id) on delete restrict,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     deleted boolean not null default false,
@@ -53,12 +52,13 @@ CREATE TABLE categories (
 CREATE TABLE transactions (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
-    payment_method INT references payment_method(id) on delete restrict,
+    type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
+    state VARCHAR(10) not null check (state in ('PENDING', 'CONFIRM', 'CANCELLED')),
+    payment_method_id INT references payment_method(id) on delete restrict,
     description TEXT,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    category_id UUID NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
+    category_id INT NOT NULL REFERENCES categories(id) ON DELETE RESTRICT,
     transaction_date DATE NOT NULL,
-    state VARCHAR(10) not null check (state in ('PENDING', 'CONFIRM', 'CANCELLED')),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -72,7 +72,8 @@ create table payment_method (
 	color VARCHAR(7) not null,
 	name VARCHAR(25) not null,
 	deleted boolean not null default false,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    unique(user_id, name)
 );
 
 -- =========================

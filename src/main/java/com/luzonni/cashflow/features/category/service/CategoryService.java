@@ -68,7 +68,6 @@ public class CategoryService {
         if (category != null) {
             category.setDeleted(false);
             category.setColor(request.getColor());
-            category.setType(request.getType());
             repository.persist(category);
             return new CategoryResponse(category);
         }
@@ -76,7 +75,6 @@ public class CategoryService {
         category.setUser(user);
         category.setColor(request.getColor());
         category.setName(request.getName());
-        category.setType(request.getType());
         GroupCategory group = groupRepository.findById(request.getGroupId());
         category.setGroup(group);
         try {
@@ -99,7 +97,6 @@ public class CategoryService {
         ).firstResult();
         category.setName(request.getName());
         category.setColor(request.getColor());
-        category.setType(request.getType());
         repository.persist(category);
         return new CategoryResponse(category);
     }
