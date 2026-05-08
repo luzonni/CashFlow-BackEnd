@@ -8,11 +8,10 @@ import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
-import org.hibernate.resource.transaction.spi.TransactionStatus;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.UUID;
 
 @Data
@@ -30,7 +29,7 @@ public class Transaction {
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
     @ManyToOne
-    @JoinColumn(name = "user_category_id")
+    @JoinColumn(name = "category_id")
     private Category category;
     @Column
     private BigDecimal amount;
@@ -43,7 +42,7 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionState state;
     @Column(name = "transaction_date")
-    private LocalDateTime date;
+    private LocalDate date;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

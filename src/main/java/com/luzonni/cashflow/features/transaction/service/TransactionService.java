@@ -13,6 +13,8 @@ import com.luzonni.cashflow.features.user.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -34,15 +36,21 @@ public class TransactionService {
         this.categoryRepository = categoryRepository;
         this.paymentMethodRepository = paymentMethodRepository;
     }
+    public List<TransactionResponse> listAll(UUID userId) {
+        List<Transaction> list = repository.find("user.id = ?0", userId).list();
+        return list.stream().map(TransactionResponse::new).toList();
+    }
 
     @Transactional
     public TransactionResponse create(UUID userId, TransactionRequest request) {
         User user =  userRepository.findById(userId).orElseThrow();
-        Category category = categoryRepository.findById(request.getCategoryId());
-        PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId());
+        Category category = categoryRepository.findByIdOptional(request.getCategoryId()).orElseThrow();
+        PaymentMethod paymentMethod = paymentMethodRepository.findByIdOptional(request.getPaymentMethodId()).orElseThrow();
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setAmount(request.getAmount());
+        transaction.setType(request.getType());
+        transaction.setState(request.getState());
         transaction.setDescription(request.getDescription());
         transaction.setDate(request.getDate());
         transaction.setCategory(category);

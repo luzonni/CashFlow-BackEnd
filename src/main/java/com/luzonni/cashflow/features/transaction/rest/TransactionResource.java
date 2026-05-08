@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.util.List;
 import java.util.UUID;
 
 @Path("/transaction")
@@ -32,7 +33,9 @@ public class TransactionResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response listTransactions() {
-        return null;
+        UUID userId = UUID.fromString(jwt.getSubject());
+        List<TransactionResponse> list = service.listAll(userId);
+        return Response.ok(list).build();
     }
 
     @POST
