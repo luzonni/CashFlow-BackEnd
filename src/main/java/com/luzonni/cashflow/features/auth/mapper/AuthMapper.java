@@ -4,6 +4,7 @@ import com.luzonni.cashflow.features.auth.domain.RefreshToken;
 import com.luzonni.cashflow.features.auth.dto.AuthCookies;
 import com.luzonni.cashflow.features.auth.dto.AuthResult;
 import com.luzonni.cashflow.features.auth.dto.RegisterRequest;
+import com.luzonni.cashflow.features.settings.domain.Settings;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
 import com.luzonni.cashflow.shared.dto.ErrorResponse;
 import com.luzonni.cashflow.shared.util.HashUtils;
@@ -12,8 +13,8 @@ import jakarta.ws.rs.core.Response;
 
 public class AuthMapper {
 
-    public static UserResponse toUserResponse(User user) {
-        return new UserResponse(user);
+    public static UserResponse toUserResponse(User user, Settings settings) {
+        return new UserResponse(user, settings);
     }
 
     public static User toUserEntity(RegisterRequest request) {
@@ -40,12 +41,12 @@ public class AuthMapper {
         return entity;
     }
 
-    public static AuthResult toAuthResult(User user, AuthCookies cookies) {
-        return new AuthResult(user, cookies);
+    public static AuthResult toAuthResult(User user, Settings settings, AuthCookies cookies) {
+        return new AuthResult(user, settings, cookies);
     }
 
     public static AuthResult toAuthError(Response.Status status, String message) {
-        AuthResult authResult = new AuthResult(null, null);
+        AuthResult authResult = new AuthResult(null, null, null);
         authResult.setError(new ErrorResponse(status, message));
         return authResult;
     }

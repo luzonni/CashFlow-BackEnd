@@ -23,6 +23,7 @@ public class TransactionResponse {
     private PaymentMethodResponse paymentMethod;
     private String type;
     private String state;
+    private String currency;
     private CategoryResponse category;
     private LocalDate date;
     private LocalDateTime createdAt;
@@ -36,6 +37,7 @@ public class TransactionResponse {
         this.state = transaction.getState().toString();
         this.category = new CategoryResponse(transaction.getCategory());
         this.date =  transaction.getDate();
+        this.currency = transaction.getCurrency();
         this.createdAt = transaction.getCreatedAt();
     }
 

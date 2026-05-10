@@ -9,6 +9,8 @@ import com.luzonni.cashflow.features.group_category.dto.GroupCategoryResponse;
 import com.luzonni.cashflow.features.group_category.repository.GroupCategoryRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
+import com.luzonni.cashflow.shared.dto.ErrorCode;
+import com.luzonni.cashflow.shared.exceptions.BusinessException;
 import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
@@ -104,6 +106,12 @@ public class GroupCategoryService {
             Long id,
             GroupCategoryRequest request
     ) throws NotFoundException, ConflictException {
+        if(repository.count("user.id = ?1 and name = ?2 and deleted = true") > 1) {
+            throw new BusinessException(
+                    ErrorCode.NAME_RESERVED_BY_DELETED_ENTITY,
+                    "This name is reserved by deleted entity"
+            );
+        }
         GroupCategory group = repository.find(
                 "id = ?1 and user.id = ?2 and deleted = false",
                 id, userId

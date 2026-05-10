@@ -45,7 +45,7 @@ public class AuthResource {
                     .build();
         }
         return Response
-                .ok(AuthMapper.toUserResponse(result.getUser()))
+                .ok(AuthMapper.toUserResponse(result.getUser(), result.getSettings()))
                 .cookie(result.getAuthCookies().getAccessToken())
                 .cookie(result.getAuthCookies().getRefreshToken())
                 .build();
@@ -66,7 +66,7 @@ public class AuthResource {
                     .build();
         }
         return Response
-                .ok(AuthMapper.toUserResponse(result.getUser()))
+                .ok(AuthMapper.toUserResponse(result.getUser(), result.getSettings()))
                 .cookie(result.getAuthCookies().getAccessToken())
                 .cookie(result.getAuthCookies().getRefreshToken())
                 .build();

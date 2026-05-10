@@ -39,6 +39,8 @@ public class Transaction {
     @Enumerated(EnumType.STRING)
     private TransactionType type;
     @Column
+    private String currency;
+    @Column
     @Enumerated(EnumType.STRING)
     private TransactionState state;
     @Column(name = "transaction_date")

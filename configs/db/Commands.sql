@@ -63,6 +63,17 @@ CREATE TABLE transactions (
 );
 
 -- =========================
+-- User Configs
+-- =========================
+CREATE TABLE user_settings (
+    user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+
+    theme VARCHAR(16) NOT NULL DEFAULT 'system',
+    locale VARCHAR(16) NOT NULL DEFAULT 'en-US',
+    currency VARCHAR(8) NOT NULL DEFAULT 'USD'
+);
+
+-- =========================
 -- Payment Method
 -- =========================
 

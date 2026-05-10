@@ -26,6 +26,8 @@ public class TransactionRequest {
     private String description;
     @NotNull
     private LocalDate date;
+    @NotEmpty(message = "The currency is necessary")
+    private String currency;
 
 
 }

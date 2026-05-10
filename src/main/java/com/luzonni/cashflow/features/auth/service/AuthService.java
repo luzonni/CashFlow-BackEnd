@@ -6,6 +6,9 @@ import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.repository.RefreshTokenRepository;
 import com.luzonni.cashflow.features.authorization.domain.Role;
 import com.luzonni.cashflow.features.authorization.repository.RoleRepository;
+import com.luzonni.cashflow.features.settings.domain.Settings;
+import com.luzonni.cashflow.features.settings.repository.SettingsRepository;
+import com.luzonni.cashflow.features.settings.service.SettingsService;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
 import com.luzonni.cashflow.shared.util.CookieUtils;
 import com.luzonni.cashflow.shared.util.TokenUtils;
@@ -13,7 +16,6 @@ import com.luzonni.cashflow.shared.util.HashUtils;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
 import com.luzonni.cashflow.shared.exceptions.ConflictException;
-import io.quarkus.security.UnauthorizedException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
@@ -32,6 +34,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final RefreshTokenRepository repository;
     private final RoleRepository roleRepository;
+    private final SettingsService settingsService;
 
     private final static String FAKE_HASH;
 
@@ -43,11 +46,13 @@ public class AuthService {
     public AuthService(
             UserRepository userRepository,
             RefreshTokenRepository repository,
-            RoleRepository roleRepository
+            RoleRepository roleRepository,
+            SettingsService settingsService
     ) {
         this.userRepository = userRepository;
         this.repository = repository;
         this.roleRepository = roleRepository;
+        this.settingsService = settingsService;
     }
 
     public AuthResult authenticate(LoginRequest loginRequest) {
@@ -60,9 +65,11 @@ public class AuthService {
             return AuthMapper.toAuthError(Response.Status.UNAUTHORIZED, "unauthorized");
         }
         User user = optionalUser.get();
+        Settings settings = settingsService.get(user.getId());
         AuthCookies cookies = generateAndPersistTokens(user);
         return AuthMapper.toAuthResult(
                 user,
+                settings,
                 cookies
         );
     }
@@ -96,12 +103,13 @@ public class AuthService {
     @Transactional
     public AuthResult register(RegisterRequest request) {
         User user = AuthMapper.toUserEntity(request);
+        Settings settings = settingsService.get(user.getId());
         Role userRole = roleRepository.findByName("USER");
         user.getRoles().add(userRole);
         try {
             userRepository.persist(user);
             AuthCookies cookies = generateAndPersistTokens(user);
-            return AuthMapper.toAuthResult(user, cookies);
+            return AuthMapper.toAuthResult(user, settings, cookies);
         }catch (Exception e) {
             throw new ConflictException("Email or Username already exists");
         }
@@ -116,7 +124,7 @@ public class AuthService {
             return AuthMapper.toAuthError(Response.Status.FORBIDDEN, "token has expired");
         }
         AuthCookies cookies = generateAndPersistTokens(tl.getUser());
-        return AuthMapper.toAuthResult(null, cookies);
+        return AuthMapper.toAuthResult(null, null, cookies);
     }
 
     @Transactional
@@ -139,7 +147,8 @@ public class AuthService {
     }
 
     public UserResponse me(UUID userId) {
-        return new UserResponse(userRepository.getUserById(userId));
+        Settings settings = settingsService.get(userId);
+        return new UserResponse(userRepository.getUserById(userId), settings);
     }
 
 }

@@ -37,7 +37,7 @@ public class TransactionService {
         this.paymentMethodRepository = paymentMethodRepository;
     }
     public List<TransactionResponse> listAll(UUID userId) {
-        List<Transaction> list = repository.find("user.id = ?0", userId).list();
+        List<Transaction> list = repository.find("user.id = ?1", userId).list();
         return list.stream().map(TransactionResponse::new).toList();
     }
 
@@ -50,6 +50,7 @@ public class TransactionService {
         transaction.setUser(user);
         transaction.setAmount(request.getAmount());
         transaction.setType(request.getType());
+        transaction.setCurrency(request.getCurrency());
         transaction.setState(request.getState());
         transaction.setDescription(request.getDescription());
         transaction.setDate(request.getDate());
