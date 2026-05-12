@@ -11,6 +11,7 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -35,6 +36,18 @@ public class TransactionResource {
     public Response listTransactions() {
         UUID userId = UUID.fromString(jwt.getSubject());
         List<TransactionResponse> list = service.listAll(userId);
+        return Response.ok(list).build();
+    }
+
+    @GET
+    @Path("between")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response listTransactionsWithData(
+            @QueryParam("start") LocalDate start,
+            @QueryParam("end") LocalDate end
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        List<TransactionResponse> list = service.listWithDate(userId, start, end);
         return Response.ok(list).build();
     }
 

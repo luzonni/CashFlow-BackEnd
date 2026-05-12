@@ -12,9 +12,12 @@ import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.NotFoundException;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
@@ -41,11 +44,22 @@ public class TransactionService {
         return list.stream().map(TransactionResponse::new).toList();
     }
 
+    public List<TransactionResponse> listWithDate(UUID userId, LocalDate start, LocalDate end) {
+        List<Transaction> list = repository.find(
+                "user.id = ?1 and date between ?2 and ?3",
+                userId, start, end
+        ).list();
+        return list.stream().map(TransactionResponse::new).toList();
+    }
+
     @Transactional
     public TransactionResponse create(UUID userId, TransactionRequest request) {
         User user =  userRepository.findById(userId).orElseThrow();
-        Category category = categoryRepository.findByIdOptional(request.getCategoryId()).orElseThrow();
-        PaymentMethod paymentMethod = paymentMethodRepository.findByIdOptional(request.getPaymentMethodId()).orElseThrow();
+        Optional<Category> optCat = categoryRepository.findByIdOptional(request.getCategoryId());
+        Optional<PaymentMethod> optPayMet = paymentMethodRepository.findByIdOptional(request.getPaymentMethodId());
+        if(optCat.isEmpty() || optPayMet.isEmpty()) {
+            throw new NotFoundException("Element for creation not found");
+        }
         Transaction transaction = new Transaction();
         transaction.setUser(user);
         transaction.setAmount(request.getAmount());
@@ -54,8 +68,8 @@ public class TransactionService {
         transaction.setState(request.getState());
         transaction.setDescription(request.getDescription());
         transaction.setDate(request.getDate());
-        transaction.setCategory(category);
-        transaction.setPaymentMethod(paymentMethod);
+        transaction.setCategory(optCat.get());
+        transaction.setPaymentMethod(optPayMet.get());
         repository.persist(transaction);
         return new TransactionResponse(transaction);
     }
