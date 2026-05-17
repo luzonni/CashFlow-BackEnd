@@ -13,6 +13,7 @@ import com.luzonni.cashflow.features.user.repository.UserRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -46,10 +47,51 @@ public class TransactionService {
 
     public List<TransactionResponse> listWithDate(UUID userId, LocalDate start, LocalDate end) {
         List<Transaction> list = repository.find(
-                "user.id = ?1 and date between ?2 and ?3",
+                "user.id = ?1 and date between ?2 and ?3 order by date asc",
                 userId, start, end
         ).list();
         return list.stream().map(TransactionResponse::new).toList();
+    }
+
+    public TransactionResponse get(UUID userId, UUID id) {
+        Transaction transaction = repository.find(
+                "user.id = ?1 and id = ?2",
+                userId, id
+        ).firstResultOptional().orElseThrow(NotFoundException::new);
+        return new TransactionResponse(transaction);
+    }
+
+    @Transactional
+    public TransactionResponse update(UUID userId, UUID id, TransactionRequest request) {
+        Transaction transaction = repository.find(
+                "user.id = ?1 and id = ?2",
+                userId, id
+        ).firstResultOptional().orElseThrow(NotFoundException::new);
+        if(request.getCategoryId() != null) {
+            Category category = categoryRepository.findById(request.getCategoryId());
+            transaction.setCategory(category);
+        }
+        if(request.getPaymentMethodId() != null) {
+            PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId());
+            transaction.setPaymentMethod(paymentMethod);
+        }
+        if(request.getDate() != null) {
+            transaction.setDate(request.getDate());
+        }
+        if(request.getAmount() != null) {
+            transaction.setAmount(request.getAmount());
+        }
+        if(request.getCurrency() != null) {
+            transaction.setCurrency(request.getCurrency());
+        }
+        if(request.getState() != null) {
+            transaction.setState(request.getState());
+        }
+        if(request.getDescription() != null) {
+            transaction.setDescription(request.getDescription());
+        }
+        repository.persist(transaction);
+        return new TransactionResponse(transaction);
     }
 
     @Transactional

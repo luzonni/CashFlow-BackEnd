@@ -51,6 +51,28 @@ public class TransactionResource {
         return Response.ok(list).build();
     }
 
+    @GET
+    @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getById(
+            @PathParam("id") UUID id
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        TransactionResponse response = service.get(userId, id);
+        return Response.ok(response).build();
+    }
+
+    @PATCH
+    @Path("{id}")
+    public Response updateTransaction(
+            @PathParam("id") UUID id,
+            TransactionRequest transactionRequest
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        TransactionResponse response = service.update(userId, id, transactionRequest);
+        return Response.ok(response).build();
+    }
+
     @POST
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)

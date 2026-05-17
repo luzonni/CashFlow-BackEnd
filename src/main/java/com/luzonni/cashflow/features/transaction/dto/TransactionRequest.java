@@ -13,7 +13,7 @@ import java.time.LocalDate;
 @Data
 public class TransactionRequest {
 
-    @NegativeOrZero
+    @NotNull
     private Long categoryId;
     @NotNull
     private Long paymentMethodId;
