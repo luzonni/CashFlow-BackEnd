@@ -3,7 +3,6 @@ package com.luzonni.cashflow.features.group_category.rest;
 import com.luzonni.cashflow.features.group_category.dto.GroupCategoryResponse;
 import com.luzonni.cashflow.features.group_category.service.GroupCategoryService;
 import com.luzonni.cashflow.features.group_category.dto.GroupCategoryRequest;
-import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;

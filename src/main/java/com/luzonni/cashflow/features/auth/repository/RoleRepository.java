@@ -1,6 +1,6 @@
-package com.luzonni.cashflow.features.authorization.repository;
+package com.luzonni.cashflow.features.auth.repository;
 
-import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.auth.domain.Role;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 

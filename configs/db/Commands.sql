@@ -88,6 +88,18 @@ create table payment_method (
 );
 
 -- =========================
+-- Payment Rules
+-- =========================
+
+create table payment_rules (
+	id SERIAL primary key,
+	user_id UUID not null references users(id) on delete cascade,
+	payment_method_id INT references payment_method(id) on delete restrict,
+	category_id INT references categories(id) on delete restrict,
+	
+);
+
+-- =========================
 -- Recurrence
 -- =========================
 create table recurrences (

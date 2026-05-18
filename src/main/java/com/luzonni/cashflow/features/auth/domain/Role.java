@@ -1,4 +1,4 @@
-package com.luzonni.cashflow.features.authorization.domain;
+package com.luzonni.cashflow.features.auth.domain;
 
 import jakarta.persistence.*;
 import lombok.Data;

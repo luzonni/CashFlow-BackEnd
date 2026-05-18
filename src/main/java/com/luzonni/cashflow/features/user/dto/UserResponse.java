@@ -1,6 +1,6 @@
 package com.luzonni.cashflow.features.user.dto;
 
-import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.auth.domain.Role;
 import com.luzonni.cashflow.features.settings.domain.Settings;
 import com.luzonni.cashflow.features.settings.dto.SettingsResponse;
 import com.luzonni.cashflow.features.user.domain.User;

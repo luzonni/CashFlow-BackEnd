@@ -1,9 +1,7 @@
 package com.luzonni.cashflow.features.auth.rest;
 
 import com.luzonni.cashflow.features.auth.dto.*;
-import com.luzonni.cashflow.features.auth.mapper.AuthMapper;
 import com.luzonni.cashflow.features.auth.service.AuthService;
-import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -37,17 +35,11 @@ public class AuthResource {
     public Response login(
             @Valid LoginRequest loginRequest
     ) {
-        AuthResult result = authService.authenticate(loginRequest);
-        if (result.isFailure()) {
-            return Response
-                    .status(Response.Status.UNAUTHORIZED)
-                    .entity(result.getError())
-                    .build();
-        }
+        AuthResponse result = authService.authenticate(loginRequest);
         return Response
-                .ok(AuthMapper.toUserResponse(result.getUser(), result.getSettings()))
-                .cookie(result.getAuthCookies().getAccessToken())
-                .cookie(result.getAuthCookies().getRefreshToken())
+                .ok(new UserResponse(result.user(), result.settings()))
+                .cookie(result.authCookies().getAccessToken())
+                .cookie(result.authCookies().getRefreshToken())
                 .build();
     }
 
@@ -58,17 +50,11 @@ public class AuthResource {
     public Response register(
             @Valid RegisterRequest requestRegister
     ) {
-        AuthResult result = authService.register(requestRegister);
-        if(result.isFailure()) {
-            return Response
-                    .status(Response.Status.CONFLICT)
-                    .entity(result.getError())
-                    .build();
-        }
+        AuthResponse result = authService.register(requestRegister);
         return Response
-                .ok(AuthMapper.toUserResponse(result.getUser(), result.getSettings()))
-                .cookie(result.getAuthCookies().getAccessToken())
-                .cookie(result.getAuthCookies().getRefreshToken())
+                .ok(new UserResponse(result.user(), result.settings()))
+                .cookie(result.authCookies().getAccessToken())
+                .cookie(result.authCookies().getRefreshToken())
                 .build();
     }
 
@@ -78,17 +64,11 @@ public class AuthResource {
     public Response refreshToken(
             @CookieParam("refreshToken") String refreshToken
     ) {
-        AuthResult result = authService.refresh(refreshToken);
-        if(result.isFailure()) {
-            return Response
-                    .status(Response.Status.FORBIDDEN)
-                    .entity(result.getError())
-                    .build();
-        }
+        AuthCookies result = authService.refresh(refreshToken);
         return Response
                 .noContent()
-                .cookie(result.getAuthCookies().getAccessToken())
-                .cookie(result.getAuthCookies().getRefreshToken())
+                .cookie(result.getAccessToken())
+                .cookie(result.getRefreshToken())
                 .build();
     }
 

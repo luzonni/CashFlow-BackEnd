@@ -6,11 +6,9 @@ import com.luzonni.cashflow.features.payment_method.dto.PaymentMethodResponse;
 import com.luzonni.cashflow.features.payment_method.repository.PaymentMethodRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
-import com.luzonni.cashflow.shared.exceptions.ConflictException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.ForbiddenException;
-import jakarta.ws.rs.NotFoundException;
 
 import java.util.List;
 import java.util.UUID;

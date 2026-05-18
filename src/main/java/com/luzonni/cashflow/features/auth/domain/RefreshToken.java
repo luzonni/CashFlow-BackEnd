@@ -1,6 +1,7 @@
 package com.luzonni.cashflow.features.auth.domain;
 
 import com.luzonni.cashflow.features.user.domain.User;
+import com.luzonni.cashflow.shared.util.HashUtils;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -33,13 +34,22 @@ public class RefreshToken {
     @JoinColumn(name = "replaced_by_token_id")
     private RefreshToken replacedByToken;
 
+    public RefreshToken() {}
+
+    public RefreshToken(
+            User user,
+            String refreshToken,
+            int daysLeft
+    ) {
+        this.tokenHash = HashUtils.sha256(refreshToken);
+        this.revoked = false;
+        this.user = user;
+        this.expiresAt = LocalDateTime.now().plusDays(daysLeft);
+    }
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();
-    }
-
-    public void setExpiry(int days) {
-        this.expiresAt = LocalDateTime.now().plusDays(days);
     }
 
     public void revoke(RefreshToken newRefreshToken) {

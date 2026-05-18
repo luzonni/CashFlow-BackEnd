@@ -1,14 +1,12 @@
 package com.luzonni.cashflow.features.user.rest;
 
 import com.luzonni.cashflow.features.settings.dto.SettingsRequest;
-import com.luzonni.cashflow.features.user.UserService;
+import com.luzonni.cashflow.features.user.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.validation.Valid;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.PATCH;
 import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;

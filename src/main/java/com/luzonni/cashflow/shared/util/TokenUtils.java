@@ -1,13 +1,11 @@
 package com.luzonni.cashflow.shared.util;
 
-import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.auth.domain.Role;
 import com.luzonni.cashflow.features.user.domain.User;
 import io.smallrye.jwt.build.Jwt;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.security.SecureRandom;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Base64;
 import java.util.Set;
 import java.util.UUID;

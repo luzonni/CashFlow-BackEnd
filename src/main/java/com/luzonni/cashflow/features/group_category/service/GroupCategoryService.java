@@ -9,12 +9,12 @@ import com.luzonni.cashflow.features.group_category.dto.GroupCategoryResponse;
 import com.luzonni.cashflow.features.group_category.repository.GroupCategoryRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
-import com.luzonni.cashflow.shared.dto.ErrorCode;
-import com.luzonni.cashflow.shared.exceptions.BusinessException;
-import com.luzonni.cashflow.shared.exceptions.ConflictException;
+import com.luzonni.cashflow.features.exception.dto.ErrorCode;
+import com.luzonni.cashflow.features.exception.domain.AppException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 import java.util.UUID;
@@ -58,7 +58,7 @@ public class GroupCategoryService {
     public GroupCategoryResponse create(
             GroupCategoryRequest request,
             UUID userId
-    ) throws ConflictException {
+    ) {
         User user = userRepository.getUserById(userId);
         GroupCategory group = repository.find(
                 "name = ?1 and user = ?2 and deleted = true",
@@ -77,7 +77,7 @@ public class GroupCategoryService {
         try {
             repository.persist(group);
         } catch (Exception e) {
-            throw new ConflictException(e.getMessage());
+            throw new AppException(Response.Status.CONFLICT, ErrorCode.ENTITY_ALREADY_EXISTS, "This category already exists");
         }
         return new GroupCategoryResponse(group);
     }
@@ -88,7 +88,7 @@ public class GroupCategoryService {
                 "id = ?1 and user.id = ?2 and deleted = false",
                 id, userId
         ).firstResult();
-        if(group == null) {
+        if (group == null) {
             throw new NotFoundException("Category not found");
         }
         List<Category> byGroupId = categoryRepository.findByGroupId(id);
@@ -105,9 +105,10 @@ public class GroupCategoryService {
             UUID userId,
             Long id,
             GroupCategoryRequest request
-    ) throws NotFoundException, ConflictException {
-        if(repository.count("user.id = ?1 and name = ?2 and deleted = true") > 1) {
-            throw new BusinessException(
+    ) {
+        if (repository.count("user.id = ?1 and name = ?2 and deleted = true") > 1) {
+            throw new AppException(
+                    Response.Status.CONFLICT,
                     ErrorCode.NAME_RESERVED_BY_DELETED_ENTITY,
                     "This name is reserved by deleted entity"
             );
@@ -116,8 +117,13 @@ public class GroupCategoryService {
                 "id = ?1 and user.id = ?2 and deleted = false",
                 id, userId
         ).firstResult();
-        if(group == null)
-            throw new NotFoundException();
+        if (group == null) {
+            throw new AppException(
+                    Response.Status.NOT_FOUND,
+                    ErrorCode.ENTITY_NOT_FOUND,
+                    "Category not found"
+            );
+        }
         group.setName(request.getName());
         group.setDescription(request.getDescription());
         repository.persist(group);

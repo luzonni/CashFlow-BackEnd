@@ -8,10 +8,12 @@ import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.category.dto.CategoryRequest;
 import com.luzonni.cashflow.features.category.dto.CategoryResponse;
 import com.luzonni.cashflow.features.category.repository.CategoryRepository;
-import com.luzonni.cashflow.shared.exceptions.ConflictException;
+import com.luzonni.cashflow.features.exception.dto.ErrorCode;
+import com.luzonni.cashflow.features.exception.domain.AppException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.util.List;
 import java.util.Optional;
@@ -34,7 +36,7 @@ public class CategoryService {
         this.groupRepository = groupRepository;
     }
 
-    public List<CategoryResponse> listAll(UUID userId) throws ConflictException {
+    public List<CategoryResponse> listAll(UUID userId) {
         Optional<User> userOptional = userRepository.findById(userId);
         if (userOptional.isEmpty()) {
             return List.of();
@@ -54,10 +56,10 @@ public class CategoryService {
     public CategoryResponse create(
             UUID userId,
             CategoryRequest request
-    ) throws ConflictException {
+    ) {
         Optional<User> optionalUser = userRepository.findById(userId);
         if (optionalUser.isEmpty()) {
-            throw new ConflictException("User not found");
+            throw new AppException(Response.Status.NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND, "User not found");
         }
         User user = optionalUser.get();
         Category category = repository.find(
@@ -80,7 +82,7 @@ public class CategoryService {
         try {
             repository.persist(category);
         } catch (Exception e) {
-            throw new ConflictException(e.getMessage());
+            throw new AppException(Response.Status.CONFLICT, ErrorCode.ENTITY_ALREADY_EXISTS, "This category already exists");
         }
         return new CategoryResponse(category);
     }
@@ -90,7 +92,7 @@ public class CategoryService {
             UUID userId,
             Long categoryId,
             CategoryRequest request
-    ) throws ConflictException {
+    ) {
         Category category = repository.find(
                 "id = ?1 and user.id = ?2 and deleted = false",
                 categoryId, userId

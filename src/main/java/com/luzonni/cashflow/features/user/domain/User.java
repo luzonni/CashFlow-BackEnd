@@ -1,6 +1,7 @@
 package com.luzonni.cashflow.features.user.domain;
 
-import com.luzonni.cashflow.features.authorization.domain.Role;
+import com.luzonni.cashflow.features.auth.domain.Role;
+import com.luzonni.cashflow.shared.util.HashUtils;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
@@ -36,6 +37,20 @@ public class User {
     public Set<Role> roles = new HashSet<>();
     @Column(name = "created_at")
     private LocalDateTime createdAt;
+
+    public User() { }
+
+    public User(
+            String username,
+            String email,
+            LocalDate birthday,
+            String password
+    ) {
+        this.username = username;
+        this.email = email;
+        this.birthday = birthday;
+        this.passwordHash = HashUtils.hash(password);
+    }
 
     @PrePersist
     public void onCreate() {
