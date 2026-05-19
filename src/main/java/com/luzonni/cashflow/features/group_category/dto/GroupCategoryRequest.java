@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 public class GroupCategoryRequest {
 
-    @NotEmpty
+    @NotEmpty(message = "Name is required")
     private String name;
 
     @Nullable

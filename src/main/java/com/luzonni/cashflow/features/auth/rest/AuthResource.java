@@ -6,6 +6,7 @@ import com.luzonni.cashflow.features.user.dto.UserResponse;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
@@ -62,7 +63,7 @@ public class AuthResource {
     @Path("refresh")
     @Consumes(MediaType.APPLICATION_JSON)
     public Response refreshToken(
-            @CookieParam("refreshToken") String refreshToken
+            @CookieParam("refreshToken") @NotEmpty String refreshToken
     ) {
         AuthCookies result = authService.refresh(refreshToken);
         return Response
@@ -75,7 +76,7 @@ public class AuthResource {
     @POST
     @Path("logout")
     public Response logout(
-            @CookieParam("refreshToken") String refreshToken
+            @CookieParam("refreshToken") @NotEmpty String refreshToken
     ) {
         AuthCookies logout = authService.logout(refreshToken);
         return Response

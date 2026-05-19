@@ -9,5 +9,6 @@ public enum ErrorCode {
     REFRESH_TOKEN_INVALID,
     REFRESH_TOKEN_EXPIRED,
     UNAUTHORIZED,
+    VALIDATION_ERROR
 
 }

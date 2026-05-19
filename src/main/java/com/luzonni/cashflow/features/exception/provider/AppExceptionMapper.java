@@ -6,6 +6,10 @@ import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
+import java.lang.reflect.Array;
+import java.util.Arrays;
+import java.util.List;
+
 @Provider
 public class AppExceptionMapper implements ExceptionMapper<AppException> {
 
@@ -17,7 +21,8 @@ public class AppExceptionMapper implements ExceptionMapper<AppException> {
                 .status(exception.getStatus())
                 .entity(new ErrorResponse(
                         exception.getCode().name(),
-                        exception.getMessage()
+                        exception.getMessage(),
+                        List.of()
                 ))
                 .build();
     }

@@ -91,12 +91,24 @@ create table payment_method (
 -- Payment Rules
 -- =========================
 
-create table payment_rules (
-	id SERIAL primary key,
-	user_id UUID not null references users(id) on delete cascade,
-	payment_method_id INT references payment_method(id) on delete restrict,
-	category_id INT references categories(id) on delete restrict,
-	
+CREATE TABLE payment_rules (
+    id SERIAL PRIMARY KEY,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    payment_method_id INT REFERENCES payment_method(id) ON DELETE RESTRICT,
+    category_id INT REFERENCES categories(id) ON DELETE RESTRICT,
+    rule_type VARCHAR(50) NOT NULL,
+    config TEXT NOT NULL,
+    deleted BOOLEAN NOT NULL DEFAULT false,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =========================
+-- Payment Rules
+-- =========================
+
+CREATE TABLE payment_rules_provider (
+	transaction UUID references transactions(id) on delete cascade,
+	payment_rule INT references payment_rules(id) on delete cascade
 );
 
 -- =========================

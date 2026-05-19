@@ -12,6 +12,7 @@ import lombok.Data;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Data
@@ -27,6 +28,7 @@ public class TransactionResponse {
     private CategoryResponse category;
     private LocalDate date;
     private LocalDateTime createdAt;
+    private List<PaymentMethodResponse> rules; // todo
 
     public TransactionResponse(Transaction transaction) {
         this.id = transaction.getId();

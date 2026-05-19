@@ -1,9 +1,12 @@
 package com.luzonni.cashflow.features.user.repository;
 
+import com.luzonni.cashflow.features.exception.domain.AppException;
+import com.luzonni.cashflow.features.exception.dto.ErrorCode;
 import com.luzonni.cashflow.features.user.domain.User;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.NotFoundException;
+import jakarta.ws.rs.core.Response;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -28,7 +31,11 @@ public class UserRepository implements PanacheRepository<User> {
         if(option.isPresent()) {
             return option.get();
         }
-        throw new NotFoundException("User not found");
+        throw new AppException(
+                Response.Status.NOT_FOUND,
+                ErrorCode.ENTITY_NOT_FOUND,
+                "User not found"
+        );
     }
 
 }

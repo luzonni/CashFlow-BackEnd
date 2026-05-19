@@ -1,5 +1,9 @@
 package com.luzonni.cashflow.features.exception.dto;
 
-public record ErrorResponse(String errorCode, String message) {
+import java.util.List;
 
-}
+public record ErrorResponse(
+        String code,
+        String message,
+        List<FieldError> errors
+) {}

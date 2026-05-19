@@ -7,9 +7,9 @@ import lombok.Data;
 @Data
 public class CategoryRequest {
 
-    @NotEmpty(message = "the name cannot be empty")
+    @NotEmpty(message = "Name is required")
     private String name;
-    @NotEmpty
+    @NotEmpty(message = "Color is required")
     private String color;
     @NotNull
     private Long groupId;
