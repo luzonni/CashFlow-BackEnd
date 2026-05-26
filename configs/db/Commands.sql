@@ -67,7 +67,6 @@ CREATE TABLE transactions (
 -- =========================
 CREATE TABLE user_settings (
     user_id UUID PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
-
     theme VARCHAR(16) NOT NULL DEFAULT 'system',
     locale VARCHAR(16) NOT NULL DEFAULT 'en-US',
     currency VARCHAR(8) NOT NULL DEFAULT 'USD'
@@ -76,7 +75,6 @@ CREATE TABLE user_settings (
 -- =========================
 -- Payment Method
 -- =========================
-
 create table payment_method (
 	id SERIAL primary key,
 	user_id UUID not null references users(id) on delete cascade,
@@ -88,56 +86,62 @@ create table payment_method (
 );
 
 -- =========================
--- Payment Rules
--- =========================
-
-CREATE TABLE payment_rules (
-    id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    payment_method_id INT REFERENCES payment_method(id) ON DELETE RESTRICT,
-    category_id INT REFERENCES categories(id) ON DELETE RESTRICT,
-    rule_type VARCHAR(50) NOT NULL,
-    config TEXT NOT NULL,
-    deleted BOOLEAN NOT NULL DEFAULT false,
-    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
-
--- =========================
--- Payment Rules
--- =========================
-
-CREATE TABLE payment_rules_provider (
-	transaction UUID references transactions(id) on delete cascade,
-	payment_rule INT references payment_rules(id) on delete cascade
-);
-
--- =========================
 -- Recurrence
 -- =========================
 create table recurrences (
-	id UUID primary key default uuid_generate_v4(),
-	name varchar(50) not null,
-	description varchar(120),
-	amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
-	user_id UUID not null references users(id) on delete cascade,
-	category_id UUID not null references categories(id) on delete restrict,
-	scheduling varchar(10) not null check (scheduling in('frequency', 'day_of_month', 'use_last_day')),
-	max_occurrences varchar(50) not null,
-	status VARCHAR(10) not null check (status in ('ACTIVE', 'ENDED', 'CANCELED')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id UUID primary key default uuid_generate_v4(),
+    user_id UUID not null references users(id) on delete cascade,
+    
+    category_id UUID references categories(id) on delete restrict,
+    payment_method_id INT references payment_method(id) on delete restrict,
+    type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
+    amount numeric(12,2) not null check(amount >= 0),
+    
+    name varchar(50) not null,
+    description varchar(120),
+    frequency varchar(20) not null check (
+        frequency in (
+            'DAILY',
+            'WEEKLY',
+            'MONTHLY',
+            'YEARLY',
+            'UNDEFINED'
+        )
+    ),
+    interval_value int not null default 1 check(interval_value > 0),
+    max_occurrences int,
+    next_execution_at timestamp,
+    timezone varchar(50) not null default 'UTC',
+    status varchar(20) not null check (
+        status in ('ACTIVE', 'PAUSED', 'CANCELED')
+    ),
+    created_at timestamp default current_timestamp
 );
 
 -- =========================
 -- Execution_Record
 -- =========================
-
 create table recurrence_execution_records (
 	id UUID primary key default uuid_generate_v4(),
-	recurrence_id UUID references recurrence(id) on delete cascade,
-	transaction_id UUID references transactions(id) on delete restrict,
-	amount NUMERIC(12,2) NOT NULL CHECK (amount >= 0),
-	release_date timestamp not null,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    recurrence_id UUID not null
+        references recurrences(id)
+        on delete cascade,
+    transaction_id UUID
+        references transactions(id)
+        on delete restrict,
+    occurrence_number int not null,
+    scheduled_to timestamp not null,
+    executed_at timestamp,
+    amount numeric(12,2) not null check(amount >= 0),
+    status varchar(20) not null check (
+        status in (
+            'PENDING',
+            'EXECUTED',
+            'SKIPPED',
+            'FAILED'
+        )
+    ),
+    created_at timestamp default current_timestamp
 );
 
 -- =========================

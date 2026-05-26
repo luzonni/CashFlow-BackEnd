@@ -2,8 +2,6 @@ package com.luzonni.cashflow.features.transaction.domain;
 
 import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.payment_method.domain.PaymentMethod;
-import com.luzonni.cashflow.features.payment_rules.domain.PaymentRule;
-import com.luzonni.cashflow.features.payment_rules.domain.TransactionPaymentRule;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.shared.type.TransactionState;
 import com.luzonni.cashflow.shared.type.TransactionType;
@@ -14,8 +12,6 @@ import org.hibernate.annotations.UuidGenerator;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -49,8 +45,6 @@ public class Transaction {
     private TransactionState state;
     @Column(name = "transaction_date")
     private LocalDate date;
-    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<TransactionPaymentRule> rules = new HashSet<>();
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
