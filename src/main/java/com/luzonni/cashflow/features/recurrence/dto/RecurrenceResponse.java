@@ -3,14 +3,18 @@ package com.luzonni.cashflow.features.recurrence.dto;
 import com.luzonni.cashflow.features.category.dto.CategoryResponse;
 import com.luzonni.cashflow.features.payment_method.dto.PaymentMethodResponse;
 import com.luzonni.cashflow.features.recurrence.domain.Recurrence;
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceRecordStatus;
 import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 @Data
 public class RecurrenceResponse {
 
+    private UUID id;
     private String name;
     private String description;
     private String status;
@@ -23,25 +27,34 @@ public class RecurrenceResponse {
     private String currency;
 
     private String frequency;
+    private Integer occurrencesProduced;
     private Integer maxOccurrences;
-    private LocalDateTime nextExecutionAt;
 
-    public static RecurrenceResponse map(Recurrence recurrence) {
-        RecurrenceResponse recurrenceResponse = new RecurrenceResponse();
+    private List<RecurrenceRecordResponse> records;
 
-        recurrenceResponse.setName(recurrence.getName());
-        recurrenceResponse.setDescription(recurrence.getDescription());
-        recurrenceResponse.setStatus(recurrence.getStatus().name());
-        recurrenceResponse.setCategory(new CategoryResponse(recurrence.getCategory()));
-        recurrenceResponse.setPaymentMethod(new PaymentMethodResponse(recurrence.getPaymentMethod()));
-        recurrenceResponse.setType(recurrence.getType().toString());
-        recurrenceResponse.setAmount(recurrence.getAmount());
-        recurrenceResponse.setCurrency(recurrence.getCurrency());
-        recurrenceResponse.setFrequency(recurrence.getFrequency().toString());
-        recurrenceResponse.setMaxOccurrences(recurrence.getMaxOccurrences());
-        recurrenceResponse.setNextExecutionAt(recurrence.getNextExecutionAt());
-
-        return recurrenceResponse;
+    public RecurrenceResponse(Recurrence recurrence) {
+        this.id = recurrence.getId();
+        this.name = recurrence.getName();
+        this.description = recurrence.getDescription();
+        this.status = recurrence.getStatus().name();
+        this.category = new CategoryResponse(recurrence.getCategory());
+        this.paymentMethod = new PaymentMethodResponse(recurrence.getPaymentMethod());
+        this.type = recurrence.getType().toString();
+        this.amount = recurrence.getAmount();
+        this.currency = recurrence.getCurrency();
+        this.frequency = recurrence.getFrequency().toString();
+        this.maxOccurrences = recurrence.getMaxOccurrences();
+        this.records = recurrence.getRecords()
+                .stream()
+                .map(RecurrenceRecordResponse::new)
+                .toList();
+        this.occurrencesProduced = this.records
+                .stream()
+                .filter((r) ->
+                        r.getStatus().equalsIgnoreCase(RecurrenceRecordStatus.EXECUTED.name())
+                )
+                .toList()
+                .size();
     }
 
 }

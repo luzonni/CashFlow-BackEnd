@@ -1,8 +1,7 @@
 package com.luzonni.cashflow.features.recurrence.enums;
 
-public enum Status {
+public enum RecurrenceRecordStatus {
 
-    ACTIVE, ENDED, CANCELLED,
     PENDING, EXECUTED, SKIPPED, FAILED;
 
 }

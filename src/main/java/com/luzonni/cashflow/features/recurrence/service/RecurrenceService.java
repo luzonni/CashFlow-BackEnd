@@ -52,12 +52,10 @@ public class RecurrenceService {
                 "user.id = ?1",
                 userId
         ).list();
-        /*
-            TODO:
-            É preciso saber a quantidade de lançamentos de cada uma, e para isso, é
-            necessario saber quantos recoreds foram lançados e finalizados (status = "EXECUTED")
-         */
-        return list.stream().map(RecurrenceResponse::map).toList();
+        return list
+                .stream()
+                .map(RecurrenceResponse::new)
+                .toList();
     }
 
     @Transactional
@@ -105,9 +103,8 @@ public class RecurrenceService {
                 recurrence,
                 firstRecurrence
         ));
-
         repository.persist(recurrence);
-        return RecurrenceResponse.map(recurrence);
+        return new RecurrenceResponse(recurrence);
     }
 
 }

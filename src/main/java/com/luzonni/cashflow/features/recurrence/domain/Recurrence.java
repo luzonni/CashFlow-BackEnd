@@ -2,7 +2,7 @@ package com.luzonni.cashflow.features.recurrence.domain;
 
 import com.luzonni.cashflow.features.payment_method.domain.PaymentMethod;
 import com.luzonni.cashflow.features.recurrence.enums.Scheduling;
-import com.luzonni.cashflow.features.recurrence.enums.Status;
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceStatus;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.shared.type.TransactionType;
@@ -48,17 +48,16 @@ public class Recurrence {
     private Integer intervalValue;
     @Column(name = "max_occurrences")
     private Integer maxOccurrences;
-    @Column(name = "next_execution_at")
-    private LocalDateTime nextExecutionAt;
     @Column
     private String currency;
     @Column
     private String timezone;
     @Column
     @Enumerated(EnumType.STRING)
-    private Status status = Status.ACTIVE;
+    private RecurrenceStatus status = RecurrenceStatus.ACTIVE;
 
     @OneToMany(mappedBy = "recurrence")
+    @OrderBy("scheduledTo ASC")
     private List<RecurrenceRecord> records;
 
     @Column(name = "create_at")
@@ -67,6 +66,7 @@ public class Recurrence {
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
+        this.status = RecurrenceStatus.ACTIVE;
     }
 
 }

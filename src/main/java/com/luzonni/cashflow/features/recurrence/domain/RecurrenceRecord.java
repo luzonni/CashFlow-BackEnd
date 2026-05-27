@@ -1,6 +1,7 @@
 package com.luzonni.cashflow.features.recurrence.domain;
 
-import com.luzonni.cashflow.features.recurrence.enums.Status;
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceRecordStatus;
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceStatus;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -35,14 +36,14 @@ public class RecurrenceRecord {
     private Integer occurrenceNumber;
     @Column
     @Enumerated(EnumType.STRING)
-    private Status status; // PENDING, EXECUTED, SKIPPED, FAILED
+    private RecurrenceRecordStatus status; // PENDING, EXECUTED, SKIPPED, FAILED
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist
     public void onCreate() {
         this.createdAt = LocalDateTime.now();
-        this.status = Status.ACTIVE;
+        this.status = RecurrenceRecordStatus.PENDING;
     }
 
 }

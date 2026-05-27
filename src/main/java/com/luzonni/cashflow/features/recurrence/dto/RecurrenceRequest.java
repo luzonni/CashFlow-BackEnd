@@ -1,7 +1,6 @@
 package com.luzonni.cashflow.features.recurrence.dto;
 
 import com.luzonni.cashflow.features.recurrence.enums.Scheduling;
-import com.luzonni.cashflow.features.recurrence.enums.Status;
 import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
