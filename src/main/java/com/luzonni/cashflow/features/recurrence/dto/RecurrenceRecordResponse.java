@@ -30,6 +30,9 @@ public class RecurrenceRecordResponse {
         this.executeAt = recurrenceRecord.getExecutedAt();
         this.createAt = recurrenceRecord.getCreatedAt();
         this.status = recurrenceRecord.getStatus().name();
+        if(recurrenceRecord.getTransaction() != null) {
+            this.transaction = new TransactionResponse(recurrenceRecord.getTransaction());
+        }
     }
 
 }

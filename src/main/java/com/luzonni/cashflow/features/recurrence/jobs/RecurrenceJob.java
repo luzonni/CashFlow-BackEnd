@@ -15,29 +15,19 @@ import java.util.List;
 @ApplicationScoped
 public class RecurrenceJob {
 
-    private final RecurrenceRepository recurrenceRepository;
-    private final RecurrenceRecordService recurrenceRecordService;
+    private final RecurrenceService service;
 
     public RecurrenceJob(
-            RecurrenceRepository recurrenceRepository,
-            RecurrenceRecordService recurrenceRecordService
+            RecurrenceService service
     ) {
-        this.recurrenceRepository = recurrenceRepository;
-        this.recurrenceRecordService = recurrenceRecordService;
+        this.service = service;
     }
 
 
-    @Scheduled(every = "1s")
+    @Scheduled(every = "12h")
     void execute() {
         System.out.println("Executando recorrências...");
-        //TODO FIX THAT
-//        List<Recurrence> recurrences = recurrenceRepository.find(
-//                "status = ?1",
-//                RecurrenceStatus.ACTIVE
-//        ).list();
-//        for (Recurrence recurrence : recurrences) {
-//            recurrenceRecordService.execRecurrence(recurrence);
-//        }
+        service.transactionLauncher();
     }
 
 }

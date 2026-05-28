@@ -7,9 +7,7 @@ import com.luzonni.cashflow.features.recurrence.service.RecurrenceService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
@@ -50,6 +48,16 @@ public class RecurrenceResource {
                 .status(Response.Status.CREATED)
                 .entity(response)
                 .build();
+    }
+
+    @PATCH
+    @Path("{id}")
+    public Response updateRecurrence(
+            @PathParam("id") UUID id,
+            RecurrenceRequest request
+    ) {
+        service.update(id, request);
+        return Response.noContent().build();
     }
 
 }

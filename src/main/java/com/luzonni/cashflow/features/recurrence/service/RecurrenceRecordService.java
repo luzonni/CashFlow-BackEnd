@@ -8,11 +8,14 @@ import com.luzonni.cashflow.features.recurrence.repository.RecurrenceRecordRepos
 import com.luzonni.cashflow.features.recurrence.repository.RecurrenceRepository;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
+import com.luzonni.cashflow.shared.type.TransactionState;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -21,7 +24,7 @@ import java.util.UUID;
 public class RecurrenceRecordService {
 
     private final TransactionRepository transactionRepository;
-    private final RecurrenceRepository  recurrenceRepository;
+    private final RecurrenceRepository recurrenceRepository;
     private final RecurrenceRecordRepository repository;
 
     public RecurrenceRecordService(
@@ -68,34 +71,61 @@ public class RecurrenceRecordService {
     }
 
     @Transactional
-    public void execRecurrence(Recurrence recurrence) {
-        List<RecurrenceRecord> recurrenceRecords = repository.find(
-                "id = ?1 and status = ?2",
-                recurrence.getId(), RecurrenceRecordStatus.PENDING
-        ).list();
-        if (recurrenceRecords.isEmpty()) {
-            recurrence.setStatus(RecurrenceStatus.ENDED);
-            recurrenceRepository.persist(recurrence);
-            return;
-        }
-        for(RecurrenceRecord recurrenceRecord : recurrenceRecords) {
-            LocalDate now = LocalDate.now();
-            if(recurrenceRecord.getScheduledTo().isBefore(now)) {
-                Transaction transaction = getTransaction(recurrence, now);
-                transactionRepository.persist(transaction);
-                recurrenceRecord.setStatus(RecurrenceRecordStatus.EXECUTED);
-                recurrenceRecord.setRecurrence(recurrence);
-                recurrenceRecord.setExecutedAt(LocalDateTime.now());
+    public void updateRecords(Recurrence recurrence, BigDecimal amount) {
+        List<RecurrenceRecord> records = recurrence.getRecords();
+        for (RecurrenceRecord record : records) {
+            if (record.getStatus().equals(RecurrenceRecordStatus.PENDING)) {
+                record.setAmount(amount);
+                repository.persist(record);
             }
         }
     }
 
-    private static Transaction getTransaction(Recurrence recurrence, LocalDate now) {
+    @Transactional
+    public boolean execRecords(Recurrence recurrence) {
+        ZoneId zoneId = ZoneId.of(recurrence.getTimezone());
+        List<RecurrenceRecord> recurrenceRecords = repository.find(
+                "recurrence.id = ?1 and status != EXECUTED",
+                recurrence.getId()
+        ).list();
+        if (recurrenceRecords.isEmpty()) {
+            return true;
+        }
+        boolean complete = false;
+        for (RecurrenceRecord recurrenceRecord : recurrenceRecords) {
+            LocalDate now = LocalDate.now(zoneId);
+            if (recurrenceRecord.getScheduledTo().isBefore(now) || recurrenceRecord.getScheduledTo().isEqual(now)) {
+                if (recurrence.getStatus().equals(RecurrenceStatus.ACTIVE)) {
+                    try {
+                        Transaction transaction = getTransaction(recurrence, now);
+                        transactionRepository.persist(transaction);
+                        recurrenceRecord.setTransaction(transaction);
+                        recurrenceRecord.setExecutedAt(LocalDateTime.now(zoneId));
+                        recurrenceRecord.setStatus(RecurrenceRecordStatus.EXECUTED);
+                        repository.persist(recurrenceRecord);
+                        if(recurrenceRecords.size() == 1) {
+                            complete = true;
+                        }
+                    }catch (Exception e){
+                        recurrenceRecord.setStatus(RecurrenceRecordStatus.FAILED);
+                    }
+                } else if (recurrence.getStatus().equals(RecurrenceStatus.PAUSED)) {
+                    recurrenceRecord.setStatus(RecurrenceRecordStatus.SKIPPED);
+                    repository.persist(recurrenceRecord);
+                }
+            }
+        }
+        return complete;
+    }
+
+    private Transaction getTransaction(Recurrence recurrence, LocalDate now) {
         Transaction transaction = new Transaction();
         transaction.setUser(recurrence.getUser());
         transaction.setDate(now);
+        transaction.setState(TransactionState.CONFIRM);
         transaction.setType(recurrence.getType());
         transaction.setCategory(recurrence.getCategory());
+        transaction.setPaymentMethod(recurrence.getPaymentMethod());
         transaction.setAmount(recurrence.getAmount());
         transaction.setCurrency(recurrence.getCurrency());
         transaction.setDescription(

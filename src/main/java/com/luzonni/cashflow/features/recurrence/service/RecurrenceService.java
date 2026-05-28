@@ -7,9 +7,9 @@ import com.luzonni.cashflow.features.exception.dto.ErrorCode;
 import com.luzonni.cashflow.features.payment_method.domain.PaymentMethod;
 import com.luzonni.cashflow.features.payment_method.repository.PaymentMethodRepository;
 import com.luzonni.cashflow.features.recurrence.domain.Recurrence;
-import com.luzonni.cashflow.features.recurrence.domain.RecurrenceRecord;
 import com.luzonni.cashflow.features.recurrence.dto.RecurrenceRequest;
 import com.luzonni.cashflow.features.recurrence.dto.RecurrenceResponse;
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceStatus;
 import com.luzonni.cashflow.features.recurrence.repository.RecurrenceRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
@@ -18,7 +18,6 @@ import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -71,7 +70,6 @@ public class RecurrenceService {
         recurrence.setTimezone(request.getTimeZone());
         recurrence.setCurrency(request.getCurrency());
 
-
         Optional<User> optUser = userRepository.findById(userId);
         Optional<Category> optCategory = categoryRepository.find(
                 "id =? 1 and deleted = false",
@@ -92,7 +90,7 @@ public class RecurrenceService {
         recurrence.setPaymentMethod(optPaymentMethod.get());
         recurrence.setUser(optUser.get());
         LocalDate firstRecurrence = request.getFirstRecord();
-        if(firstRecurrence.isBefore(LocalDate.now())) {
+        if (firstRecurrence.isBefore(LocalDate.now())) {
             throw new AppException(
                     Response.Status.CONFLICT,
                     ErrorCode.INVALID_OPERATION,
@@ -107,4 +105,50 @@ public class RecurrenceService {
         return new RecurrenceResponse(recurrence);
     }
 
+    @Transactional
+    public void update(UUID id, RecurrenceRequest request) {
+        Optional<Recurrence> opt = repository.find(
+                "id = ?1",
+                id
+        ).firstResultOptional();
+        if (opt.isEmpty()) {
+            throw new AppException(
+                    Response.Status.NOT_FOUND,
+                    ErrorCode.ENTITY_NOT_FOUND,
+                    "Entity not found"
+            );
+        }
+        Recurrence recurrence = opt.get();
+        if (request.getAmount() != null) {
+            recurrence.setAmount(request.getAmount());
+            recurrenceRecordService.updateRecords(recurrence, request.getAmount());
+        }
+        if (request.getStatus() != null) {
+            if(recurrence.getStatus().equals(RecurrenceStatus.ENDED)) {
+                throw new AppException(
+                        Response.Status.BAD_REQUEST,
+                        ErrorCode.INVALID_OPERATION,
+                        "Status is already ended"
+                );
+            }
+            recurrence.setStatus(request.getStatus());
+        }
+        repository.persist(recurrence);
+    }
+
+    @Transactional
+    public void transactionLauncher() {
+        List<Recurrence> recurrences = repository.find(
+                "status != ?1",
+                RecurrenceStatus.ENDED
+        ).list();
+        for (Recurrence recurrence : recurrences) {
+            boolean complete = recurrenceRecordService.execRecords(recurrence);
+            if (complete) {
+                recurrence.setStatus(RecurrenceStatus.ENDED);
+                repository.persist(recurrence);
+            }
+        }
+
+    }
 }

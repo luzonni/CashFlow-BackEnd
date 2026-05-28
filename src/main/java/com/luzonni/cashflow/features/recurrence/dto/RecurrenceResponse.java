@@ -27,6 +27,7 @@ public class RecurrenceResponse {
     private String currency;
 
     private String frequency;
+    private Integer interval;
     private Integer occurrencesProduced;
     private Integer maxOccurrences;
 
@@ -43,6 +44,7 @@ public class RecurrenceResponse {
         this.amount = recurrence.getAmount();
         this.currency = recurrence.getCurrency();
         this.frequency = recurrence.getFrequency().toString();
+        this.interval = recurrence.getIntervalValue();
         this.maxOccurrences = recurrence.getMaxOccurrences();
         this.records = recurrence.getRecords()
                 .stream()

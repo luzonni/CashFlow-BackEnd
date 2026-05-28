@@ -28,7 +28,6 @@ public class TransactionResponse {
     private CategoryResponse category;
     private LocalDate date;
     private LocalDateTime createdAt;
-    private List<PaymentMethodResponse> rules; // todo
 
     public TransactionResponse(Transaction transaction) {
         this.id = transaction.getId();

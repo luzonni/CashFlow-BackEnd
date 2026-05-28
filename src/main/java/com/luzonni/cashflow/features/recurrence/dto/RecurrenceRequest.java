@@ -1,5 +1,6 @@
 package com.luzonni.cashflow.features.recurrence.dto;
 
+import com.luzonni.cashflow.features.recurrence.enums.RecurrenceStatus;
 import com.luzonni.cashflow.features.recurrence.enums.Scheduling;
 import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.validation.constraints.NotEmpty;
@@ -27,6 +28,8 @@ public class RecurrenceRequest {
     private Long categoryId;
     @NotNull
     private Long paymentMethodId;
+
+    private RecurrenceStatus status;
 
     @NotNull
     private LocalDate firstRecord;

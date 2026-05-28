@@ -92,10 +92,11 @@ create table recurrences (
     id UUID primary key default uuid_generate_v4(),
     user_id UUID not null references users(id) on delete cascade,
     
-    category_id UUID references categories(id) on delete restrict,
+    category_id INT references categories(id) on delete restrict,
     payment_method_id INT references payment_method(id) on delete restrict,
     type VARCHAR(10) NOT NULL CHECK (type IN ('INCOME', 'EXPENSE')),
     amount numeric(12,2) not null check(amount >= 0),
+    currency VARCHAR(12) not null,
     
     name varchar(50) not null,
     description varchar(120),
@@ -110,10 +111,9 @@ create table recurrences (
     ),
     interval_value int not null default 1 check(interval_value > 0),
     max_occurrences int,
-    next_execution_at timestamp,
     timezone varchar(50) not null default 'UTC',
     status varchar(20) not null check (
-        status in ('ACTIVE', 'PAUSED', 'CANCELED')
+        status in ('ACTIVE', 'PAUSED', 'CANCELED', 'ENDED')
     ),
     created_at timestamp default current_timestamp
 );
