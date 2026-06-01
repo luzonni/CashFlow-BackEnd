@@ -1,6 +1,5 @@
 package com.luzonni.cashflow.features.user.domain;
 
-import com.luzonni.cashflow.features.auth.domain.Role;
 import com.luzonni.cashflow.shared.util.HashUtils;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -8,8 +7,6 @@ import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -28,13 +25,6 @@ public class User {
     private String passwordHash;
     @Column
     private LocalDate birthday;
-    @ManyToMany
-    @JoinTable(
-            name = "user_roles",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
-    public Set<Role> roles = new HashSet<>();
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 

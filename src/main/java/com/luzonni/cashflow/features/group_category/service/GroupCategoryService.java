@@ -36,9 +36,9 @@ public class GroupCategoryService {
         this.userRepository = userRepository;
     }
 
-    public List<GroupCategoryResponse> findAll() {
+    public List<GroupCategoryResponse> findAll(UUID userId) {
         return repository
-                .find("deleted = false order by createdAt desc")
+                .find("user.id = ?1 and deleted = false order by createdAt desc", userId)
                 .stream()
                 .map((group) -> {
                     GroupCategoryResponse response = new GroupCategoryResponse(group);
