@@ -64,7 +64,7 @@ public class AuthService {
                 .map(User::getPasswordHash)
                 .orElse(FAKE_HASH);
         boolean valid = HashUtils.verify(loginRequest.getPassword(), hash);
-        if(!valid || optionalUser.isEmpty()) {
+        if (!valid || optionalUser.isEmpty()) {
             throw new AppException(Response.Status.UNAUTHORIZED, ErrorCode.UNAUTHORIZED, "unauthorized");
         }
         User user = optionalUser.get();
@@ -108,23 +108,16 @@ public class AuthService {
                 request.getPassword()
         );
         Settings settings = settingsService.get(user.getId());
-        Role userRole = roleRepository.findByName("USER");
-        user.getRoles().add(userRole);
-        try {
-            userRepository.persist(user);
-            AuthCookies cookies = generateAndPersistTokens(user);
-            return new AuthResponse(user, settings, cookies);
-        }catch (Exception e) {
-            throw new AppException(Response.Status.NOT_FOUND, ErrorCode.ENTITY_NOT_FOUND, "Email or Username already exists");
-        }
+        AuthCookies cookies = generateAndPersistTokens(user);
+        return new AuthResponse(user, settings, cookies);
     }
 
     public AuthCookies refresh(String refreshToken) {
         RefreshToken tl = repository.findByRefreshToken(refreshToken);
-        if(tl == null) {
+        if (tl == null) {
             throw new AppException(Response.Status.FORBIDDEN, ErrorCode.REFRESH_TOKEN_INVALID, "refresh token not found");
         }
-        if(tl.getRevoked()) {
+        if (tl.getRevoked()) {
             throw new AppException(Response.Status.FORBIDDEN, ErrorCode.REFRESH_TOKEN_EXPIRED, "token has expired");
         }
         return generateAndPersistTokens(tl.getUser());
@@ -132,7 +125,7 @@ public class AuthService {
 
     @Transactional
     public AuthCookies logout(String refreshToken) {
-        if(refreshToken != null) {
+        if (refreshToken != null) {
             RefreshToken tl = repository.findByRefreshToken(refreshToken);
             if (tl != null) {
                 tl.revoke(null);

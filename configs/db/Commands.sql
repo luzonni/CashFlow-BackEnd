@@ -197,4 +197,8 @@ CREATE TABLE user_roles (
 CREATE INDEX idx_user_roles_user_id ON user_roles(user_id);
 CREATE INDEX idx_user_roles_role_id ON user_roles(role_id);
 
+-- =========================
+-- Default Roles
+-- =========================
+insert into roles 
 
