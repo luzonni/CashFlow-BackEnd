@@ -25,6 +25,12 @@ public class User {
     private String passwordHash;
     @Column
     private LocalDate birthday;
+    @Column(name = "email_verified")
+    private Boolean emailVerified = false;
+    @Column(name = "verification_token")
+    private String verificationToken;
+    @Column(name = "verification_token_expires_at")
+    private LocalDateTime verificationTokenExpiresAt;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 
@@ -40,6 +46,13 @@ public class User {
         this.email = email;
         this.birthday = birthday;
         this.passwordHash = HashUtils.hash(password);
+        this.emailVerified = false;
+        createVerificationToken();
+    }
+
+    public void createVerificationToken() {
+        this.verificationToken = UUID.randomUUID().toString();
+        this.verificationTokenExpiresAt = LocalDateTime.now().plusHours(24);
     }
 
     @PrePersist

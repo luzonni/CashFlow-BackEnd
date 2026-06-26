@@ -2,6 +2,7 @@ package com.luzonni.cashflow.features.auth.rest;
 
 import com.luzonni.cashflow.features.auth.dto.*;
 import com.luzonni.cashflow.features.auth.service.AuthService;
+import com.luzonni.cashflow.features.mail.service.MailService;
 import com.luzonni.cashflow.features.user.dto.UserResponse;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
@@ -18,15 +19,28 @@ import java.util.UUID;
 public class AuthResource {
 
     private final AuthService authService;
+    private final MailService mailService;
     private final JsonWebToken jwt;
 
     @Inject
     public AuthResource(
             AuthService authService,
+            MailService mailService,
             JsonWebToken jwt
     ) {
         this.authService = authService;
+        this.mailService = mailService;
         this.jwt = jwt;
+    }
+
+    @GET
+    @Path("verify")
+    public Response verify(
+            @QueryParam("token")
+            String token
+    ) {
+        mailService.verify(token);
+        return Response.ok("Email confirmed").build();
     }
 
     @POST

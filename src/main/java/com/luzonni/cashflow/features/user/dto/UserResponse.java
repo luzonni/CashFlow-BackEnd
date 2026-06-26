@@ -15,6 +15,7 @@ public class UserResponse {
     private String email;
     private LocalDate birthday;
     private SettingsResponse settings;
+    private Boolean verified;
     private LocalDate createdAt;
 
     public UserResponse(User user, Settings settings) {
@@ -22,6 +23,7 @@ public class UserResponse {
         this.email = user.getEmail();
         this.birthday = user.getBirthday();
         this.settings = new SettingsResponse(settings);
+        this.verified = user.getEmailVerified();
         this.createdAt = user.getCreatedAt().toLocalDate();
     }
 

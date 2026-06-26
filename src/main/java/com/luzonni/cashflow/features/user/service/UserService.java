@@ -2,6 +2,7 @@ package com.luzonni.cashflow.features.user.service;
 
 import com.luzonni.cashflow.features.exception.domain.AppException;
 import com.luzonni.cashflow.features.exception.dto.ErrorCode;
+import com.luzonni.cashflow.features.mail.service.MailService;
 import com.luzonni.cashflow.features.settings.dto.SettingsRequest;
 import com.luzonni.cashflow.features.settings.service.SettingsService;
 import com.luzonni.cashflow.features.user.domain.User;
@@ -18,13 +19,16 @@ public class UserService {
 
     private final UserRepository repository;
     private final SettingsService settingsService;
+    private final MailService mainService;
 
     public UserService(
             UserRepository repository,
-            SettingsService settingsService
+            SettingsService settingsService,
+            MailService mainService
     ) {
         this.repository = repository;
         this.settingsService = settingsService;
+        this.mainService = mainService;
     }
 
     @Transactional
@@ -46,10 +50,11 @@ public class UserService {
         }catch (AppException appException){
             throw new AppException(
                  Response.Status.BAD_REQUEST,
-                 ErrorCode.INVALID_OPERATION,
+                 ErrorCode.USER_ALREADY_EXISTS,
                  "User already exists."
             );
         }
+        mainService.sendEmail(user.getId());
         return user;
     }
 

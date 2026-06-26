@@ -23,8 +23,7 @@ public class RecurrenceJob {
         this.service = service;
     }
 
-
-    @Scheduled(every = "12h")
+    @Scheduled(every = "6h")
     void execute() {
         System.out.println("Executando recorrências...");
         service.transactionLauncher();
