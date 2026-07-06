@@ -54,7 +54,7 @@ public class UserService {
                  "User already exists."
             );
         }
-        mainService.sendEmail(user.getId());
+        //mainService.sendEmail(user.getId());
         return user;
     }
 
