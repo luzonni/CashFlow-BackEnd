@@ -3,8 +3,6 @@ package com.luzonni.cashflow.features.auth.service;
 import com.luzonni.cashflow.features.auth.domain.RefreshToken;
 import com.luzonni.cashflow.features.auth.dto.*;
 import com.luzonni.cashflow.features.auth.repository.RefreshTokenRepository;
-import com.luzonni.cashflow.features.auth.domain.Role;
-import com.luzonni.cashflow.features.auth.repository.RoleRepository;
 import com.luzonni.cashflow.features.settings.domain.Settings;
 import com.luzonni.cashflow.features.settings.service.SettingsService;
 import com.luzonni.cashflow.features.user.service.UserService;
@@ -33,7 +31,6 @@ public class AuthService {
 
     private final UserRepository userRepository;
     private final RefreshTokenRepository repository;
-    private final RoleRepository roleRepository;
     private final SettingsService settingsService;
     private final UserService userService;
 
@@ -47,13 +44,11 @@ public class AuthService {
     public AuthService(
             UserRepository userRepository,
             RefreshTokenRepository repository,
-            RoleRepository roleRepository,
             SettingsService settingsService,
             UserService userService
     ) {
         this.userRepository = userRepository;
         this.repository = repository;
-        this.roleRepository = roleRepository;
         this.settingsService = settingsService;
         this.userService = userService;
     }

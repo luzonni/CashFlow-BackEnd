@@ -13,6 +13,7 @@ import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.UUID;
 
+@RolesAllowed("USER")
 @Path("/category_group")
 public class GroupCategoryResource {
 
@@ -29,7 +30,6 @@ public class GroupCategoryResource {
     }
 
     @POST
-    @RolesAllowed("USER")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response createCategory(
@@ -45,7 +45,6 @@ public class GroupCategoryResource {
 
     @PUT
     @Path("{id}")
-    @RolesAllowed("USER")
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response updateCategory(
@@ -60,17 +59,16 @@ public class GroupCategoryResource {
     }
 
     @GET
-    @RolesAllowed("USER")
     @Produces(MediaType.APPLICATION_JSON)
     public Response listCategories() {
+        UUID userId = UUID.fromString(token.getSubject());
         return Response
-                .ok(service.findAll())
+                .ok(service.findAll(userId))
                 .build();
     }
 
     @DELETE
     @Path("{id}")
-    @RolesAllowed("USER")
     public Response deleteCategory(
             @PathParam("id")
             Long id
