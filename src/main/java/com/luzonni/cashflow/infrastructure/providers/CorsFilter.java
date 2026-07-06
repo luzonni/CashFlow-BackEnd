@@ -20,7 +20,7 @@ public class CorsFilter implements ContainerResponseFilter {
 
         response.getHeaders().add(
                 "Access-Control-Allow-Headers",
-                "*");
+                "Content-Type, Authorization, Accept, Origin, X-Requested-With");
 
         response.getHeaders().add(
                 "Access-Control-Allow-Methods",
