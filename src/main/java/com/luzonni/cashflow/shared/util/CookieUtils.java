@@ -13,6 +13,7 @@ public class CookieUtils {
                 .maxAge(60 * 30)
                 .httpOnly(true)
                 .secure(SECURE)
+                .sameSite(NewCookie.SameSite.NONE)
                 .build();
     }
 
@@ -23,6 +24,7 @@ public class CookieUtils {
                 .maxAge(60 * 60 * 24 * 15)
                 .httpOnly(true)
                 .secure(SECURE)
+                .sameSite(NewCookie.SameSite.NONE)
                 .build();
     }
 
@@ -33,6 +35,7 @@ public class CookieUtils {
                 .maxAge(0)
                 .httpOnly(true)
                 .secure(SECURE)
+                .sameSite(NewCookie.SameSite.NONE)
                 .build();
     }
 
@@ -43,6 +46,7 @@ public class CookieUtils {
                 .maxAge(0)
                 .httpOnly(true)
                 .secure(SECURE)
+                .sameSite(NewCookie.SameSite.NONE)
                 .build();
     }
 
