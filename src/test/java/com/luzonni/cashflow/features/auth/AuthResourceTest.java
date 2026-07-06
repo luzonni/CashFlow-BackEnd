@@ -28,7 +28,7 @@ public class AuthResourceTest {
     public void register_ok() {
 
         RegisterRequest request = new RegisterRequest();
-        request.setUsername("Paulo Oliveira");
+        request.setUsername("Paulo_Oliveira");
         request.setPassword("97493Padu1!!");
         request.setEmail("paulo_oliva37@teste.com");
         request.setBirthday(LocalDate.of(1980, 1, 1));
