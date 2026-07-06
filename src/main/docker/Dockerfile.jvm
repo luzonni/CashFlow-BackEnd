@@ -9,12 +9,11 @@ WORKDIR /code
 RUN microdnf install -y maven && microdnf clean all
 
 # Copia primeiro o pom.xml (aproveita cache do Docker entre builds)
-COPY --chown=185 pom.xml /code/pom.xml
-USER 185
+COPY pom.xml /code/pom.xml
 RUN mvn -B dependency:go-offline
 
 # Agora copia o restante do código e builda
-COPY --chown=185 src /code/src
+COPY src /code/src
 RUN mvn -B package -DskipTests
 
 ### Etapa 2: Imagem final, só com o resultado do build
