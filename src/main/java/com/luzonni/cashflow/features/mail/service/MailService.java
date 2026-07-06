@@ -10,6 +10,7 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -20,6 +21,9 @@ public class MailService {
 
     private final Mailer mailer;
     private final UserRepository userRepository;
+
+    @ConfigProperty(name = "app.base-url")
+    String baseUrl;
 
     @Inject
     public MailService(
@@ -40,14 +44,18 @@ public class MailService {
             );
         }
         User user = optionalUser.get();
-        String link = "http://localhost:8080/auth/verify?token=" + user.getVerificationToken();
-        mailer.send(
-                Mail.withHtml(
-                        user.getEmail(),
-                        "Confirm your email",
-                        "<p>Clique on link to confirm email: <a href='" + link + "'>Confirm email</a></p>"
-                )
-        );
+        String link = baseUrl + "/auth/verify?token=" + user.getVerificationToken();
+        try {
+            mailer.send(
+                    Mail.withHtml(
+                            user.getEmail(),
+                            "Confirm your email",
+                            "<p>Clique on link to confirm email: <a href='" + link + "'>Confirm email</a></p>"
+                    )
+            );
+        }catch (Exception e) {
+            //TODO only for test, not uses in prod.
+        }
     }
 
     @Transactional
