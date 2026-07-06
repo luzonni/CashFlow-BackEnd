@@ -1,5 +1,5 @@
 ### Etapa 1: Build da aplicação com Maven
-FROM registry.access.redhat.com/ubi9/openjdk-25:1.24 AS build
+FROM registry.access.redhat.com/ubi9/openjdk-21:1.23 AS build
 
 USER root
 WORKDIR /code
@@ -17,7 +17,7 @@ COPY src /code/src
 RUN mvn -B package -DskipTests
 
 ### Etapa 2: Imagem final, só com o resultado do build
-FROM registry.access.redhat.com/ubi9/openjdk-25-runtime:1.24
+FROM registry.access.redhat.com/ubi9/openjdk-21-runtime:1.23
 
 ENV LANGUAGE='en_US:en'
 
