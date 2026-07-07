@@ -7,14 +7,15 @@ import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
 import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.List;
 import java.util.UUID;
 
-@Path("/payment_method")
 @RolesAllowed("USER")
+@Path("/payment_method")
 public class PaymentMethodResource {
 
     private final PaymentMethodService service;
@@ -30,6 +31,7 @@ public class PaymentMethodResource {
     }
 
     @GET
+    @Produces(MediaType.APPLICATION_JSON)
     public Response listAll() {
         UUID userId = UUID.fromString(token.getSubject());
         List<PaymentMethodResponse> list = service.listAll(userId);
@@ -39,6 +41,8 @@ public class PaymentMethodResource {
     }
 
     @POST
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Produces(MediaType.APPLICATION_JSON)
     public Response create(@Valid  PaymentMethodRequest pm) {
         UUID userId = UUID.fromString(token.getSubject());
         PaymentMethodResponse response = service.create(userId, pm);
@@ -50,6 +54,7 @@ public class PaymentMethodResource {
 
     @PUT
     @Path("{id}")
+    @Produces(MediaType.APPLICATION_JSON)
     public Response update(
             @PathParam("id") Long id,
             @Valid PaymentMethodRequest pm
