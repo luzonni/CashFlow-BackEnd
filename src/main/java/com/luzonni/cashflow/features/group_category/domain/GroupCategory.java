@@ -23,7 +23,7 @@ public class GroupCategory {
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
-    @Column(name = "create_at")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist
