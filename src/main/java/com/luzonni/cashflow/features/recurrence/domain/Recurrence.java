@@ -60,7 +60,7 @@ public class Recurrence {
     @OrderBy("scheduledTo ASC")
     private List<RecurrenceRecord> records;
 
-    @Column(name = "create_at")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist

@@ -24,7 +24,7 @@ public class PaymentMethod {
     private String name;
     @Column
     private Boolean deleted = false;
-    @Column
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist

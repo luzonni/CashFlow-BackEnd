@@ -27,7 +27,7 @@ public class Category {
     private String name;
     @Column
     private Boolean deleted = false;
-    @Column(name = "create_at")
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
     @PrePersist
