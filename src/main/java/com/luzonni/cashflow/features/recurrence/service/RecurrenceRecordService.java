@@ -128,9 +128,7 @@ public class RecurrenceRecordService {
         transaction.setPaymentMethod(recurrence.getPaymentMethod());
         transaction.setAmount(recurrence.getAmount());
         transaction.setCurrency(recurrence.getCurrency());
-        transaction.setDescription(
-                "Created by recurrence: \"" + recurrence.getName() + "\""
-        );
+        transaction.setDescription(recurrence.getDescription());
         return transaction;
     }
 
