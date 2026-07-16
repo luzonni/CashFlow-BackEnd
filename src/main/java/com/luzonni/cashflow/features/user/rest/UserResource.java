@@ -1,12 +1,11 @@
 package com.luzonni.cashflow.features.user.rest;
 
 import com.luzonni.cashflow.features.settings.dto.SettingsRequest;
+import com.luzonni.cashflow.features.user.dto.AmountResponse;
 import com.luzonni.cashflow.features.user.service.UserService;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.Consumes;
-import jakarta.ws.rs.PATCH;
-import jakarta.ws.rs.Path;
+import jakarta.ws.rs.*;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.eclipse.microprofile.jwt.JsonWebToken;
@@ -27,6 +26,15 @@ public class UserResource {
     ) {
         this.service = service;
         this.token = token;
+    }
+
+    @GET
+    @Path("amount")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response getAmount() {
+        UUID userId = UUID.fromString(token.getSubject());
+        AmountResponse response = service.getAmount(userId);
+        return Response.ok(response).build();
     }
 
     @PATCH

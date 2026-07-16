@@ -90,13 +90,6 @@ public class RecurrenceService {
         recurrence.setPaymentMethod(optPaymentMethod.get());
         recurrence.setUser(optUser.get());
         LocalDate firstRecurrence = request.getFirstRecord();
-        if (firstRecurrence.isBefore(LocalDate.now())) {
-            throw new AppException(
-                    Response.Status.CONFLICT,
-                    ErrorCode.INVALID_OPERATION,
-                    "Date is before now"
-            );
-        }
         recurrence.setRecords(recurrenceRecordService.create(
                 recurrence,
                 firstRecurrence

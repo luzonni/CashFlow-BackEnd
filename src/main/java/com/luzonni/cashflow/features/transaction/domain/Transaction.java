@@ -6,6 +6,7 @@ import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.shared.type.TransactionState;
 import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import org.hibernate.annotations.UuidGenerator;
 
@@ -31,7 +32,7 @@ public class Transaction {
     @ManyToOne
     @JoinColumn(name = "category_id")
     private Category category;
-    @Column
+    @Column(precision = 28, scale = 8)
     private BigDecimal amount;
     @Column
     private String description;
@@ -40,6 +41,8 @@ public class Transaction {
     private TransactionType type;
     @Column
     private String currency;
+    @Column(precision = 28, scale = 8)
+    private BigDecimal defaultAmount;
     @Column
     @Enumerated(EnumType.STRING)
     private TransactionState state;
