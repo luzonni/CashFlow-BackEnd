@@ -1,8 +1,12 @@
 package com.luzonni.cashflow.features.transaction.rest;
 
+import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.transaction.dto.TransactionResponse;
+import com.luzonni.cashflow.features.transaction.dto.TransactionUpdateRequest;
 import com.luzonni.cashflow.features.transaction.service.TransactionService;
 import com.luzonni.cashflow.features.transaction.dto.TransactionRequest;
+import com.luzonni.cashflow.shared.type.TransactionState;
+import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.annotation.security.RolesAllowed;
 import jakarta.inject.Inject;
 import jakarta.validation.Valid;
@@ -66,10 +70,14 @@ public class TransactionResource {
     @Path("{id}")
     public Response updateTransaction(
             @PathParam("id") UUID id,
-            TransactionRequest transactionRequest
+            @Valid TransactionUpdateRequest request
     ) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        TransactionResponse response = service.update(userId, id, transactionRequest);
+        TransactionResponse response = service.update(
+                userId,
+                id,
+                request
+        );
         return Response.ok(response).build();
     }
 
@@ -80,12 +88,22 @@ public class TransactionResource {
             @Valid TransactionRequest request
     ) {
         UUID userId = UUID.fromString(jwt.getSubject());
-        TransactionResponse response = service.create(userId, request);
+        Transaction transaction = service.create(userId, request);
+        TransactionResponse response = service.getResponse(userId, transaction);
         return Response
                 .status(Response.Status.CREATED)
                 .entity(response)
                 .build();
     }
 
+    @DELETE
+    @Path("{id}")
+    public Response deleteTransaction(
+            @Valid @PathParam("id") UUID id
+    ) {
+        UUID userId = UUID.fromString(jwt.getSubject());
+        service.delete(userId, id);
+        return Response.noContent().build();
+    }
 
 }

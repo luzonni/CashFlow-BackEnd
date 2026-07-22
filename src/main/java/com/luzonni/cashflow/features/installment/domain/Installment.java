@@ -1,30 +1,32 @@
-package com.luzonni.cashflow.features.transaction.domain;
+package com.luzonni.cashflow.features.installment.domain;
 
 import com.luzonni.cashflow.features.category.domain.Category;
 import com.luzonni.cashflow.features.payment_method.domain.PaymentMethod;
+import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.user.domain.User;
-import com.luzonni.cashflow.shared.type.TransactionState;
-import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.UUID;
+import java.util.List;
 
-@Data
 @Entity
-@Table(name = "transactions")
-public class Transaction {
+@Data
+@Table(name = "installments")
+public class Installment {
 
     @Id
-    @UuidGenerator()
-    private UUID id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
     @ManyToOne
     @JoinColumn(name = "user_id")
     private User user;
+    @Column()
+    private Integer installments;
+    @Column()
+    private BigDecimal amount;
     @ManyToOne
     @JoinColumn(name = "payment_method_id")
     private PaymentMethod paymentMethod;
@@ -33,24 +35,21 @@ public class Transaction {
     private Category category;
     @Column
     private String currency;
-    @Column(name = "default_amount",precision = 28, scale = 8)
-    private BigDecimal defaultAmount;
-    @Column(precision = 28, scale = 8)
-    private BigDecimal amount;
     @Column
     private String description;
     @Column
-    @Enumerated(EnumType.STRING)
-    private TransactionType type;
-    @Column
-    @Enumerated(EnumType.STRING)
-    private TransactionState state;
-    @Column(name = "transaction_date")
     private LocalDate date;
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-    @Column(name = "deleted")
+    @Column
     private Boolean deleted = false;
+    @OneToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+            name = "installment_transaction",
+            joinColumns = @JoinColumn(name = "installment_id"),
+            inverseJoinColumns = @JoinColumn(name = "transaction_id")
+    )
+    private List<Transaction> transactions;
 
     @PrePersist
     public void onCreate() {

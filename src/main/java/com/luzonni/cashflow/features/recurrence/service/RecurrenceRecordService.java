@@ -1,5 +1,7 @@
 package com.luzonni.cashflow.features.recurrence.service;
 
+import com.luzonni.cashflow.features.exception.domain.AppException;
+import com.luzonni.cashflow.features.exception.dto.ErrorCode;
 import com.luzonni.cashflow.features.recurrence.domain.Recurrence;
 import com.luzonni.cashflow.features.recurrence.domain.RecurrenceRecord;
 import com.luzonni.cashflow.features.recurrence.enums.RecurrenceRecordStatus;
@@ -7,10 +9,14 @@ import com.luzonni.cashflow.features.recurrence.enums.RecurrenceStatus;
 import com.luzonni.cashflow.features.recurrence.repository.RecurrenceRecordRepository;
 import com.luzonni.cashflow.features.recurrence.repository.RecurrenceRepository;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
+import com.luzonni.cashflow.features.transaction.dto.TransactionRequest;
+import com.luzonni.cashflow.features.transaction.dto.TransactionResponse;
 import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
+import com.luzonni.cashflow.features.transaction.service.TransactionService;
 import com.luzonni.cashflow.shared.type.TransactionState;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
+import jakarta.ws.rs.core.Response;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -18,22 +24,26 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @ApplicationScoped
 public class RecurrenceRecordService {
 
     private final TransactionRepository transactionRepository;
+    private final TransactionService transactionService;
     private final RecurrenceRepository recurrenceRepository;
     private final RecurrenceRecordRepository repository;
 
     public RecurrenceRecordService(
             RecurrenceRecordRepository repository,
             RecurrenceRepository recurrenceRepository,
-            TransactionRepository transactionRepository
+            TransactionRepository transactionRepository,
+            TransactionService transactionService
     ) {
         this.repository = repository;
         this.recurrenceRepository = recurrenceRepository;
+        this.transactionService = transactionService;
         this.transactionRepository = transactionRepository;
     }
 
@@ -97,16 +107,19 @@ public class RecurrenceRecordService {
             if (recurrenceRecord.getScheduledTo().isBefore(now) || recurrenceRecord.getScheduledTo().isEqual(now)) {
                 if (recurrence.getStatus().equals(RecurrenceStatus.ACTIVE)) {
                     try {
-                        Transaction transaction = getTransaction(recurrence, now);
-                        transactionRepository.persist(transaction);
+                        Transaction transaction = createTransaction(
+                                recurrence,
+                                recurrenceRecord,
+                                now
+                        );
                         recurrenceRecord.setTransaction(transaction);
                         recurrenceRecord.setExecutedAt(LocalDateTime.now(zoneId));
                         recurrenceRecord.setStatus(RecurrenceRecordStatus.EXECUTED);
                         repository.persist(recurrenceRecord);
-                        if(recurrenceRecords.size() == 1) {
+                        if (recurrenceRecords.size() == 1) {
                             complete = true;
                         }
-                    }catch (Exception e){
+                    } catch (Exception e) {
                         recurrenceRecord.setStatus(RecurrenceRecordStatus.FAILED);
                     }
                 } else if (recurrence.getStatus().equals(RecurrenceStatus.PAUSED)) {
@@ -118,18 +131,23 @@ public class RecurrenceRecordService {
         return complete;
     }
 
-    private Transaction getTransaction(Recurrence recurrence, LocalDate now) {
-        Transaction transaction = new Transaction();
-        transaction.setUser(recurrence.getUser());
-        transaction.setDate(now);
-        transaction.setState(TransactionState.CONFIRM);
-        transaction.setType(recurrence.getType());
-        transaction.setCategory(recurrence.getCategory());
-        transaction.setPaymentMethod(recurrence.getPaymentMethod());
-        transaction.setAmount(recurrence.getAmount());
-        transaction.setCurrency(recurrence.getCurrency());
-        transaction.setDescription(recurrence.getDescription());
-        return transaction;
+    private Transaction createTransaction(
+            Recurrence recurrence,
+            RecurrenceRecord recurrenceRecord,
+            LocalDate now
+    ) {
+        UUID userId = recurrenceRecord.getRecurrence().getUser().getId();
+        TransactionRequest tR = new TransactionRequest();
+        tR.setAmount(recurrence.getAmount());
+        tR.setCurrency(recurrence.getCurrency());
+        tR.setDescription(recurrence.getDescription());
+        tR.setType(recurrence.getType());
+        tR.setDate(now);
+        tR.setState(TransactionState.CONFIRM);
+        tR.setType(recurrence.getType());
+        tR.setCategoryId(recurrence.getCategory().getId());
+        tR.setPaymentMethodId(recurrence.getPaymentMethod().getId());
+        return transactionService.create(userId, tR);
     }
 
 }

@@ -10,15 +10,17 @@ import com.luzonni.cashflow.features.settings.service.SettingsService;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.transaction.dto.TransactionRequest;
 import com.luzonni.cashflow.features.transaction.dto.TransactionResponse;
+import com.luzonni.cashflow.features.transaction.dto.TransactionUpdateRequest;
 import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
+import com.luzonni.cashflow.shared.type.TransactionState;
+import com.luzonni.cashflow.shared.type.TransactionType;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.transaction.Transactional;
 import jakarta.ws.rs.NotFoundException;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -55,7 +57,7 @@ public class TransactionService {
         List<Transaction> list = transform(
                 user,
                 repository
-                        .find("user.id = ?1", userId)
+                        .find("user.id = ?1 and deleted = false", userId)
                         .list()
         );
         return list.stream().map(TransactionResponse::new).toList();
@@ -66,7 +68,7 @@ public class TransactionService {
         List<Transaction> list = transform(
                 user,
                 repository
-                        .find("user.id = ?1 and date between ?2 and ?3 order by date asc",
+                        .find("user.id = ?1 and date between ?2 and ?3 and deleted = false order by date asc",
                                 userId, start, end)
                         .list()
         );
@@ -76,11 +78,11 @@ public class TransactionService {
     private List<Transaction> transform(User user, List<Transaction> trs) {
         Settings settings = settingsService.get(user.getId());
         String currency = settings.getCurrency();
-        BigDecimal rate = exchangeService.getRate(currency); //Cotação atual
+        BigDecimal rate = exchangeService.getRate(currency);
         return trs.stream()
                 .peek((tr) -> {
                     BigDecimal trAmount = tr.getAmount();
-                    trAmount = trAmount.multiply(rate); // Sempre cotação atual!
+                    trAmount = trAmount.multiply(rate);
                     tr.setAmount(trAmount);
                 }).toList();
     }
@@ -94,15 +96,18 @@ public class TransactionService {
                                 userId, id)
                         .list()
         ).getFirst();
-        if(transaction == null) {
+        if (transaction == null) {
             throw new NotFoundException();
         }
         return new TransactionResponse(transaction);
     }
 
     @Transactional
-    public TransactionResponse update(UUID userId, UUID id, TransactionRequest request) {
-        //TODO verificar sé será necessario mudar a taxa de cambio!
+    public TransactionResponse update(
+            UUID userId,
+            UUID id,
+            TransactionUpdateRequest request
+    ) {
         Transaction transaction = repository.find(
                 "user.id = ?1 and id = ?2",
                 userId, id
@@ -115,18 +120,8 @@ public class TransactionService {
             PaymentMethod paymentMethod = paymentMethodRepository.findById(request.getPaymentMethodId());
             transaction.setPaymentMethod(paymentMethod);
         }
-        if (request.getDate() != null) {
-            transaction.setDate(request.getDate());
-        }
-        if (request.getAmount() != null) {
-            //TODO isso precisa de atenção!
-            transaction.setAmount(request.getAmount());
-        }
         if (request.getType() != null) {
             transaction.setType(request.getType());
-        }
-        if (request.getCurrency() != null) {
-            transaction.setCurrency(request.getCurrency());
         }
         if (request.getState() != null) {
             transaction.setState(request.getState());
@@ -139,7 +134,17 @@ public class TransactionService {
     }
 
     @Transactional
-    public TransactionResponse create(UUID userId, TransactionRequest request) {
+    public void delete(UUID userId, UUID id) {
+        Transaction transaction = repository.find(
+                "user.id = ?1 and id = ?2",
+                userId, id
+        ).firstResultOptional().orElseThrow(NotFoundException::new);
+        transaction.setDeleted(true);
+        repository.persist(transaction);
+    }
+
+    @Transactional
+    public Transaction create(UUID userId, TransactionRequest request) {
         User user = userRepository.findById(userId).orElseThrow();
         Optional<Category> optCat = categoryRepository.findByIdOptional(request.getCategoryId());
         Optional<PaymentMethod> optPayMet = paymentMethodRepository.findByIdOptional(request.getPaymentMethodId());
@@ -154,17 +159,19 @@ public class TransactionService {
         tr.setDate(request.getDate());
         tr.setCategory(optCat.get());
         tr.setPaymentMethod(optPayMet.get());
-        //Amount sempre precisa ser salvo em BASE[USD]!
         String currency = request.getCurrency();
         tr.setCurrency(currency);
         tr.setDefaultAmount(request.getAmount());
-        BigDecimal rate = exchangeService.getRate(currency);
-        BigDecimal amountUSD = request.getAmount().divide(rate, 12, RoundingMode.HALF_UP);
-        tr.setAmount(amountUSD);
+        tr.setAmount(exchangeService.getUSD(currency, request.getAmount()));
         repository.persist(tr);
-        TransactionResponse response = new TransactionResponse(tr);
+        return tr;
+    }
+
+    public TransactionResponse getResponse(UUID userId, Transaction tr) {
+        User user = userRepository.findById(userId).orElseThrow();
         Settings settings = settingsService.get(user.getId());
-        response.setAmount(request.getAmount().multiply(exchangeService.getRate(settings.getCurrency())));
+        TransactionResponse response = new TransactionResponse(tr);
+        response.setAmount(response.getAmount().multiply(exchangeService.getRate(settings.getCurrency())));
         return response;
     }
 
