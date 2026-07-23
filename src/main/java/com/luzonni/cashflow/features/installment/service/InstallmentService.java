@@ -10,7 +10,7 @@ import com.luzonni.cashflow.features.payment_method.domain.PaymentMethod;
 import com.luzonni.cashflow.features.payment_method.repository.PaymentMethodRepository;
 import com.luzonni.cashflow.features.transaction.domain.Transaction;
 import com.luzonni.cashflow.features.transaction.dto.TransactionRequest;
-import com.luzonni.cashflow.features.transaction.dto.TransactionResponse;
+import com.luzonni.cashflow.features.transaction.repository.TransactionRepository;
 import com.luzonni.cashflow.features.transaction.service.TransactionService;
 import com.luzonni.cashflow.features.user.domain.User;
 import com.luzonni.cashflow.features.user.repository.UserRepository;
@@ -21,9 +21,7 @@ import jakarta.transaction.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @ApplicationScoped
 public class InstallmentService {
@@ -33,19 +31,22 @@ public class InstallmentService {
     private final CategoryRepository categoryRepository;
     private final PaymentMethodRepository paymentMethodRepository;
     private final TransactionService transactionService;
+    private final TransactionRepository transactionRepository;
 
     public InstallmentService(
             InstallmentRepository repository,
             UserRepository userRepository,
             CategoryRepository categoryRepository,
             PaymentMethodRepository paymentMethodRepository,
-            TransactionService transactionService
+            TransactionService transactionService,
+            TransactionRepository transactionRepository
     ) {
         this.repository = repository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.paymentMethodRepository = paymentMethodRepository;
         this.transactionService = transactionService;
+        this.transactionRepository = transactionRepository;
     }
 
     @Transactional
@@ -65,9 +66,25 @@ public class InstallmentService {
         List<Transaction> transactions = buildTransactions(userId, inst);
         inst.setTransactions(transactions);
         repository.persist(inst);
-        return new InstallmentResponse(inst);
+        return this.map(inst);
     }
 
+    public Map<UUID, Boolean> getPercent(UUID userId, Long id) {
+        Installment inst = repository.find(
+                "id = ?1 and user.id = ?2",
+                id, userId
+        ).firstResultOptional().orElseThrow();
+        List<Transaction> transactions = inst.getTransactions();
+        Map<UUID, Boolean> items = new HashMap<>();
+        for (Transaction transaction : transactions) {
+            items.put(transaction.getId(), transaction.confirmed());
+        }
+        return items;
+    }
+
+    private Integer getConclusions(Installment inst) {
+        return (int) inst.getTransactions().stream().filter(Transaction::confirmed).count();
+    }
 
     private List<Transaction> buildTransactions(UUID userId, Installment inst) {
         List<Transaction> listTransactions = new ArrayList<>();
@@ -87,6 +104,19 @@ public class InstallmentService {
         }
         listTransactions.getFirst().setState(TransactionState.CONFIRM);
         return listTransactions;
+    }
+
+    public List<InstallmentResponse> list(UUID userId) {
+        return repository.find(
+                "user.id = ?1",
+                userId
+        ).list().stream().map(this::map).toList();
+    }
+
+    private InstallmentResponse map(Installment inst) {
+        InstallmentResponse response = new InstallmentResponse(inst);
+        response.setConclusions(getConclusions(inst));
+        return response;
     }
 
 }

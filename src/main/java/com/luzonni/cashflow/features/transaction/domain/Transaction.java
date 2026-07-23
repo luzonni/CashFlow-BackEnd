@@ -58,4 +58,8 @@ public class Transaction {
         this.createdAt = LocalDateTime.now();
     }
 
+    public boolean confirmed() {
+        return this.state.equals(TransactionState.CONFIRM);
+    }
+
 }

@@ -3,19 +3,20 @@ package com.luzonni.cashflow.features.installment.dto;
 import com.luzonni.cashflow.features.category.dto.CategoryResponse;
 import com.luzonni.cashflow.features.installment.domain.Installment;
 import com.luzonni.cashflow.features.payment_method.dto.PaymentMethodResponse;
-import lombok.Getter;
+import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-@Getter
+@Data
 public class InstallmentResponse {
 
     private final Long id;
     private final BigDecimal amount;
     private final String currency;
     private final Integer installments;
+    private Integer conclusions;
     private final CategoryResponse category;
     private final PaymentMethodResponse paymentMethod;
     private final String description;
@@ -32,6 +33,7 @@ public class InstallmentResponse {
         this.description = installment.getDescription();
         this.date = installment.getDate();
         this.createdAt = installment.getCreatedAt();
+        this.conclusions = 0;
     }
 
 }
